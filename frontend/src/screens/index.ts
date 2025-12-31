@@ -3,6 +3,7 @@
  */
 
 export { LoginScreen } from './LoginScreen';
+export { SignupScreen } from './SignupScreen';
 export { HomeScreen } from './HomeScreen';
 export { ProfileCreateScreen } from './ProfileCreateScreen';
 export { ProfileViewScreen } from './ProfileViewScreen';

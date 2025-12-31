@@ -11,8 +11,11 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TextInput, Button, Card } from '../components';
@@ -24,10 +27,31 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ProfileCreate'>;
 
 type Gender = 'male' | 'female' | 'other';
 
+// Available sports with icons and colors
+const sportsOptions = [
+  { name: 'Cricket', icon: '🏏', color: '#4CAF50' },
+  { name: 'Basketball', icon: '🏀', color: '#FF9800' },
+  { name: 'Swimming', icon: '🏊', color: '#2196F3' },
+  { name: 'Volleyball', icon: '🏐', color: '#9C27B0' },
+  { name: 'Kabaddi', icon: '🤼', color: '#F44336' },
+  { name: 'Football', icon: '⚽', color: '#00BCD4' },
+  { name: 'Tennis', icon: '🎾', color: '#8BC34A' },
+  { name: 'Athletics', icon: '🏃', color: '#FF5722' },
+  { name: 'Badminton', icon: '🏸', color: '#E91E63' },
+  { name: 'Hockey', icon: '🏑', color: '#3F51B5' },
+  { name: 'Table Tennis', icon: '🏓', color: '#009688' },
+  { name: 'Boxing', icon: '🥊', color: '#795548' },
+  { name: 'Wrestling', icon: '🤼‍♂️', color: '#607D8B' },
+  { name: 'Gymnastics', icon: '🤸', color: '#FF4081' },
+  { name: 'Cycling', icon: '🚴', color: '#FFC107' },
+  { name: 'Other', icon: '🏅', color: '#9E9E9E' },
+];
+
 export function ProfileCreateScreen({ navigation }: Props) {
   const { saveAthlete } = useAthletes();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showSportPicker, setShowSportPicker] = useState(false);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -37,6 +61,13 @@ export function ProfileCreateScreen({ navigation }: Props) {
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
   const [sport, setSport] = useState('');
+  const [selectedSportIcon, setSelectedSportIcon] = useState('');
+
+  const selectSport = (sportName: string, icon: string) => {
+    setSport(sportName);
+    setSelectedSportIcon(icon);
+    setShowSportPicker(false);
+  };
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -71,9 +102,13 @@ export function ProfileCreateScreen({ navigation }: Props) {
     }
   };
 
+  // Format date in local time to avoid timezone shift (YYYY-MM-DD)
   const formatDateOfBirth = (): string => {
     if (!dateOfBirth) return '';
-    return dateOfBirth.toISOString().split('T')[0];
+    const year = dateOfBirth.getFullYear();
+    const month = String(dateOfBirth.getMonth() + 1).padStart(2, '0');
+    const day = String(dateOfBirth.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const handleSave = async () => {
@@ -204,13 +239,21 @@ export function ProfileCreateScreen({ navigation }: Props) {
             keyboardType="numeric"
           />
 
-          <TextInput
-            label="Sport"
-            value={sport}
-            onChangeText={setSport}
-            placeholder="e.g., Basketball, Soccer"
-            autoCapitalize="words"
-          />
+          <Text style={styles.label}>Sport</Text>
+          <TouchableOpacity
+            style={styles.sportInput}
+            onPress={() => setShowSportPicker(true)}
+          >
+            {sport ? (
+              <View style={styles.selectedSport}>
+                <Text style={styles.sportIcon}>{selectedSportIcon}</Text>
+                <Text style={styles.sportText}>{sport}</Text>
+              </View>
+            ) : (
+              <Text style={styles.sportPlaceholder}>Select a sport</Text>
+            )}
+            <Text style={styles.dropdownArrow}>▼</Text>
+          </TouchableOpacity>
         </Card>
 
         <Button
@@ -220,6 +263,53 @@ export function ProfileCreateScreen({ navigation }: Props) {
           style={styles.button}
           size="large"
         />
+
+        {/* Sport Picker Modal */}
+        <Modal
+          visible={showSportPicker}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowSportPicker(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <LinearGradient
+                colors={['#4F46E5', '#7C3AED']}
+                style={styles.modalHeader}
+              >
+                <Text style={styles.modalTitle}>Select Sport</Text>
+                <TouchableOpacity 
+                  style={styles.closeButton}
+                  onPress={() => setShowSportPicker(false)}
+                >
+                  <Text style={styles.closeButtonText}>✕</Text>
+                </TouchableOpacity>
+              </LinearGradient>
+              <FlatList
+                data={sportsOptions}
+                keyExtractor={(item) => item.name}
+                numColumns={2}
+                contentContainerStyle={styles.sportsGrid}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.sportOption,
+                      sport === item.name && styles.sportOptionSelected,
+                      { borderColor: item.color }
+                    ]}
+                    onPress={() => selectSport(item.name, item.icon)}
+                  >
+                    <Text style={styles.sportOptionIcon}>{item.icon}</Text>
+                    <Text style={[
+                      styles.sportOptionText,
+                      sport === item.name && { color: item.color }
+                    ]}>{item.name}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -303,5 +393,102 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     marginTop: -12,
     marginBottom: 16,
+  },
+  sportInput: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectedSport: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sportIcon: {
+    fontSize: 20,
+    marginRight: 10,
+  },
+  sportText: {
+    fontSize: 16,
+    color: '#1f2937',
+    fontWeight: '500',
+  },
+  sportPlaceholder: {
+    fontSize: 16,
+    color: '#9ca3af',
+  },
+  dropdownArrow: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 16,
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  sportsGrid: {
+    padding: 16,
+  },
+  sportOption: {
+    flex: 1,
+    margin: 6,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    backgroundColor: '#f9fafb',
+    alignItems: 'center',
+    minHeight: 100,
+    justifyContent: 'center',
+  },
+  sportOptionSelected: {
+    backgroundColor: '#EEF2FF',
+  },
+  sportOptionIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  sportOptionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+    textAlign: 'center',
   },
 });
