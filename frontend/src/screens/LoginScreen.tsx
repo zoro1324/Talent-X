@@ -263,7 +263,7 @@ export function LoginScreen({ navigation }: Props) {
 
   // Handle registration navigation
   const handleRegister = () => {
-    navigation.navigate('Register');
+    navigation.navigate('Register' as any);
   };
 
   // Handle Google Sign In
