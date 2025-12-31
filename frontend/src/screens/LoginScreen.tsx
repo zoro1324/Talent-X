@@ -2,7 +2,7 @@
  * Login Screen - Professional user authentication with email verification
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,17 +17,19 @@ import {
   Linking,
   Alert,
   Dimensions,
+  ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 // @ts-ignore - @expo/vector-icons is bundled with Expo
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import { Ionicons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { RootStackParamList } from '../types';
 import { generateOTP, sendOTPEmail } from '../services/EmailService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const OTP_BOX_SIZE = Math.min(48, (screenWidth - 100) / 6);
 
 export function LoginScreen({ navigation }: Props) {
@@ -54,8 +56,28 @@ export function LoginScreen({ navigation }: Props) {
     otp?: string;
   }>({});
 
-  // Animation for OTP modal
+  // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const logoScale = useRef(new Animated.Value(0.8)).current;
+  const formSlide = useRef(new Animated.Value(30)).current;
+
+  // Animate on mount
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(logoScale, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(formSlide, {
+        toValue: 0,
+        duration: 500,
+        delay: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   // Validate email format
   const validateEmail = (value: string): boolean => {
@@ -263,7 +285,23 @@ export function LoginScreen({ navigation }: Props) {
 
   // Handle registration navigation
   const handleRegister = () => {
-    navigation.navigate('Register' as any);
+    navigation.navigate('Register');
+  };
+
+  // Handle Continue as Guest
+  const handleGuestLogin = () => {
+    Alert.alert(
+      '👋 Continue as Guest',
+      'You can explore the app with limited features. Some features like saving data and syncing across devices won\'t be available.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Continue', 
+          onPress: () => navigation.replace('Home'),
+          style: 'default'
+        }
+      ]
+    );
   };
 
   // Handle Google Sign In
@@ -340,176 +378,233 @@ export function LoginScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header / Logo Section */}
-          <View style={styles.headerSection}>
-            <View style={styles.logoContainer}>
-              <Ionicons name="trophy" size={48} color="#ffffff" />
+          {/* Header / Logo Section with Gradient */}
+          <LinearGradient
+            colors={['#4F46E5', '#7C3AED', '#9333EA']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.headerGradient}
+          >
+            <View style={styles.headerDecoration}>
+              <View style={styles.decorCircle1} />
+              <View style={styles.decorCircle2} />
+              <View style={styles.decorCircle3} />
             </View>
-            <Text style={styles.appName}>Talent-X</Text>
-            <Text style={styles.tagline}>Sports Assessment Platform</Text>
-          </View>
+            <Animated.View style={[styles.headerSection, { transform: [{ scale: logoScale }] }]}>
+              <View style={styles.logoContainer}>
+                <MaterialCommunityIcons name="trophy-award" size={52} color="#ffffff" />
+              </View>
+              <Text style={styles.appName}>Talent-X</Text>
+              <Text style={styles.tagline}>Sports Assessment Platform</Text>
+            </Animated.View>
+          </LinearGradient>
 
           {/* Login Form */}
-          <View style={styles.formSection}>
-            <Text style={styles.welcomeText}>Welcome Back</Text>
-            <Text style={styles.subtitleText}>
-              Sign in to continue to your account
-            </Text>
+          <Animated.View style={[styles.formSection, { transform: [{ translateY: formSlide }] }]}>
+            <View style={styles.formCard}>
+              <Text style={styles.welcomeText}>Welcome Back! 👋</Text>
+              <Text style={styles.subtitleText}>
+                Sign in to continue to your account
+              </Text>
 
-            {/* General Error/Success Message */}
-            {errors.general && (
-              <View style={[
-                styles.messageBanner,
-                errors.general.includes('sent') ? styles.successBanner : styles.errorBanner
-              ]}>
-                <Ionicons 
-                  name={errors.general.includes('sent') ? 'checkmark-circle' : 'alert-circle'} 
-                  size={18} 
-                  color={errors.general.includes('sent') ? '#059669' : '#dc2626'} 
-                />
-                <Text style={[
-                  styles.messageBannerText,
-                  errors.general.includes('sent') ? styles.successText : styles.errorText
+              {/* General Error/Success Message */}
+              {errors.general && (
+                <View style={[
+                  styles.messageBanner,
+                  errors.general.includes('sent') ? styles.successBanner : styles.errorBanner
                 ]}>
-                  {errors.general}
-                </Text>
-              </View>
-            )}
-
-            {/* Email Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Email</Text>
-              <View style={[styles.inputContainer, errors.email && styles.inputContainerError]}>
-                <Ionicons name="mail-outline" size={20} color="#9ca3af" style={styles.inputIcon} />
-                <RNTextInput
-                  style={styles.textInput}
-                  placeholder="Enter your email"
-                  placeholderTextColor="#9ca3af"
-                  value={email}
-                  onChangeText={handleEmailChange}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-              </View>
-              {errors.email && (
-                <View style={styles.errorContainer}>
-                  <Ionicons name="alert-circle" size={14} color="#ef4444" />
-                  <Text style={styles.fieldErrorText}>{errors.email}</Text>
+                  <Ionicons 
+                    name={errors.general.includes('sent') ? 'checkmark-circle' : 'alert-circle'} 
+                    size={18} 
+                    color={errors.general.includes('sent') ? '#059669' : '#dc2626'} 
+                  />
+                  <Text style={[
+                    styles.messageBannerText,
+                    errors.general.includes('sent') ? styles.successText : styles.errorText
+                  ]}>
+                    {errors.general}
+                  </Text>
                 </View>
               )}
-            </View>
 
-            {/* Password Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Password</Text>
-              <View style={[styles.inputContainer, errors.password && styles.inputContainerError]}>
-                <Ionicons name="lock-closed-outline" size={20} color="#9ca3af" style={styles.inputIcon} />
-                <RNTextInput
-                  style={styles.textInput}
-                  placeholder="Enter your password"
-                  placeholderTextColor="#9ca3af"
-                  value={password}
-                  onChangeText={handlePasswordChange}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
+              {/* Email Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  <Ionicons name="mail" size={14} color="#4F46E5" /> Email Address
+                </Text>
+                <View style={[styles.inputContainer, errors.email && styles.inputContainerError]}>
+                  <Ionicons name="mail-outline" size={20} color="#9ca3af" style={styles.inputIcon} />
+                  <RNTextInput
+                    style={styles.textInput}
+                    placeholder="Enter your email"
+                    placeholderTextColor="#9ca3af"
+                    value={email}
+                    onChangeText={handleEmailChange}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  {email.length > 0 && validateEmail(email) && (
+                    <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                  )}
+                </View>
+                {errors.email && (
+                  <View style={styles.errorContainer}>
+                    <Ionicons name="alert-circle" size={14} color="#ef4444" />
+                    <Text style={styles.fieldErrorText}>{errors.email}</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Password Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  <Ionicons name="lock-closed" size={14} color="#4F46E5" /> Password
+                </Text>
+                <View style={[styles.inputContainer, errors.password && styles.inputContainerError]}>
+                  <Ionicons name="lock-closed-outline" size={20} color="#9ca3af" style={styles.inputIcon} />
+                  <RNTextInput
+                    style={styles.textInput}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#9ca3af"
+                    value={password}
+                    onChangeText={handlePasswordChange}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeButton}
+                    onPress={() => setShowPassword(!showPassword)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                      size={20}
+                      color="#9ca3af"
+                    />
+                  </TouchableOpacity>
+                </View>
+                {errors.password && (
+                  <View style={styles.errorContainer}>
+                    <Ionicons name="alert-circle" size={14} color="#ef4444" />
+                    <Text style={styles.fieldErrorText}>{errors.password}</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Remember Me & Forgot Password Row */}
+              <View style={styles.optionsRow}>
                 <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.rememberMeContainer}
+                  onPress={() => setRememberMe(!rememberMe)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons
-                    name={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                    size={20}
-                    color="#9ca3af"
-                  />
+                  <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                    {rememberMe && <Ionicons name="checkmark" size={14} color="#ffffff" />}
+                  </View>
+                  <Text style={styles.rememberMeText}>Remember me</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.7}>
+                  <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                 </TouchableOpacity>
               </View>
-              {errors.password && (
-                <View style={styles.errorContainer}>
-                  <Ionicons name="alert-circle" size={14} color="#ef4444" />
-                  <Text style={styles.fieldErrorText}>{errors.password}</Text>
-                </View>
-              )}
-            </View>
 
-            {/* Remember Me & Forgot Password Row */}
-            <View style={styles.optionsRow}>
+              {/* Login Button */}
               <TouchableOpacity
-                style={styles.rememberMeContainer}
-                onPress={() => setRememberMe(!rememberMe)}
-                activeOpacity={0.7}
+                style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+                onPress={handleLogin}
+                disabled={loading}
+                activeOpacity={0.8}
               >
-                <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
-                  {rememberMe && <Ionicons name="checkmark" size={14} color="#ffffff" />}
-                </View>
-                <Text style={styles.rememberMeText}>Remember me</Text>
+                <LinearGradient
+                  colors={loading ? ['#9CA3AF', '#9CA3AF'] : ['#4F46E5', '#7C3AED']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.loginButtonGradient}
+                >
+                  {loading ? (
+                    <View style={styles.loadingContainer}>
+                      <Ionicons name="sync" size={20} color="#ffffff" />
+                      <Text style={styles.loginButtonText}>Sending OTP...</Text>
+                    </View>
+                  ) : (
+                    <>
+                      <Text style={styles.loginButtonText}>Sign In</Text>
+                      <Ionicons name="arrow-forward" size={20} color="#ffffff" />
+                    </>
+                  )}
+                </LinearGradient>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.7}>
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-              </TouchableOpacity>
-            </View>
+              {/* Divider */}
+              <View style={styles.dividerContainer}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or continue with</Text>
+                <View style={styles.dividerLine} />
+              </View>
 
-            {/* Login Button */}
-            <TouchableOpacity
-              style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-              onPress={handleLogin}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              {loading ? (
-                <View style={styles.loadingContainer}>
-                  <Ionicons name="sync" size={20} color="#ffffff" />
-                  <Text style={styles.loginButtonText}>Sending OTP...</Text>
-                </View>
-              ) : (
-                <Text style={styles.loginButtonText}>Sign In</Text>
+              {/* Social Login Options */}
+              <View style={styles.socialContainer}>
+                <TouchableOpacity 
+                  style={styles.socialButton} 
+                  activeOpacity={0.7}
+                  onPress={handleGoogleSignIn}
+                >
+                  <FontAwesome name="google" size={20} color="#DB4437" />
+                  <Text style={styles.socialButtonText}>Google</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.socialButton} 
+                  activeOpacity={0.7}
+                  onPress={handleFacebookSignIn}
+                >
+                  <FontAwesome name="facebook" size={20} color="#4267B2" />
+                  <Text style={styles.socialButtonText}>Facebook</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Apple Sign In for iOS */}
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity 
+                  style={styles.appleButton} 
+                  activeOpacity={0.7}
+                  onPress={handleAppleSignIn}
+                >
+                  <Ionicons name="logo-apple" size={22} color="#ffffff" />
+                  <Text style={styles.appleButtonText}>Continue with Apple</Text>
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or continue with</Text>
-              <View style={styles.dividerLine} />
             </View>
 
-            {/* Social Login Options */}
-            <View style={styles.socialContainer}>
-              <TouchableOpacity 
-                style={styles.socialButton} 
-                activeOpacity={0.7}
-                onPress={handleGoogleSignIn}
-              >
-                <FontAwesome name="google" size={20} color="#DB4437" />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.socialButton} 
-                activeOpacity={0.7}
-                onPress={handleFacebookSignIn}
-              >
-                <FontAwesome name="facebook" size={20} color="#4267B2" />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.socialButton} 
-                activeOpacity={0.7}
-                onPress={handleAppleSignIn}
-              >
-                <Ionicons name="logo-apple" size={22} color="#000000" />
+            {/* Registration Link */}
+            <View style={styles.registerSection}>
+              <Text style={styles.registerText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={handleRegister} activeOpacity={0.7}>
+                <Text style={styles.registerLink}>Sign Up</Text>
               </TouchableOpacity>
             </View>
-          </View>
 
-          {/* Registration Link */}
-          <View style={styles.registerSection}>
-            <Text style={styles.registerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={handleRegister} activeOpacity={0.7}>
-              <Text style={styles.registerLink}>Sign Up</Text>
+            {/* Continue as Guest */}
+            <TouchableOpacity 
+              style={styles.guestButton} 
+              onPress={handleGuestLogin}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="person-outline" size={20} color="#6b7280" />
+              <Text style={styles.guestButtonText}>Continue as Guest</Text>
+              <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
             </TouchableOpacity>
-          </View>
+
+            {/* Security Note */}
+            <View style={styles.securityNote}>
+              <Ionicons name="shield-checkmark" size={16} color="#10B981" />
+              <Text style={styles.securityNoteText}>
+                Your data is protected with 256-bit encryption
+              </Text>
+            </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -608,63 +703,115 @@ export function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#F3F4F6',
   },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
   },
 
-  // Header Section
+  // Header Gradient Section
+  headerGradient: {
+    paddingTop: 40,
+    paddingBottom: 50,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    overflow: 'hidden',
+  },
+  headerDecoration: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  decorCircle1: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  decorCircle2: {
+    position: 'absolute',
+    top: 60,
+    left: -30,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  decorCircle3: {
+    position: 'absolute',
+    bottom: -20,
+    right: 40,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
   headerSection: {
     alignItems: 'center',
-    paddingTop: 48,
-    paddingBottom: 40,
+    zIndex: 1,
   },
   logoContainer: {
-    width: 88,
-    height: 88,
-    borderRadius: 22,
-    backgroundColor: '#3b82f6',
+    width: 100,
+    height: 100,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   appName: {
-    fontSize: 34,
-    fontWeight: '700',
-    color: '#1f2937',
-    letterSpacing: -0.5,
+    fontSize: 38,
+    fontWeight: '800',
+    color: '#ffffff',
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
   },
   tagline: {
     fontSize: 15,
-    color: '#6b7280',
-    marginTop: 4,
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: 6,
+    fontWeight: '500',
   },
 
   // Form Section
   formSection: {
     flex: 1,
+    marginTop: -30,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
+  formCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 8,
   },
   welcomeText: {
     fontSize: 26,
     fontWeight: '700',
     color: '#1f2937',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   subtitleText: {
     fontSize: 15,
     color: '#6b7280',
-    marginBottom: 28,
+    marginBottom: 24,
   },
 
   // Message Banner
@@ -699,7 +846,7 @@ const styles = StyleSheet.create({
 
   // Input Styles
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 18,
   },
   inputLabel: {
     fontSize: 14,
@@ -713,9 +860,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
     borderWidth: 1.5,
     borderColor: '#e5e7eb',
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 14,
-    height: 52,
+    height: 54,
   },
   inputContainerError: {
     borderColor: '#ef4444',
@@ -749,7 +896,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: 24,
   },
   rememberMeContainer: {
     flexDirection: 'row',
@@ -766,8 +913,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   checkboxChecked: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6',
+    backgroundColor: '#4F46E5',
+    borderColor: '#4F46E5',
   },
   rememberMeText: {
     fontSize: 14,
@@ -775,29 +922,33 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: '#3b82f6',
+    color: '#4F46E5',
     fontWeight: '600',
   },
 
   // Login Button
   loginButton: {
-    backgroundColor: '#3b82f6',
-    height: 54,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#3b82f6',
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#4F46E5',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
+  loginButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 54,
+    gap: 8,
+  },
   loginButtonDisabled: {
     opacity: 0.7,
   },
   loginButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     color: '#ffffff',
   },
   loadingContainer: {
@@ -810,7 +961,7 @@ const styles = StyleSheet.create({
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 28,
+    marginVertical: 24,
   },
   dividerLine: {
     flex: 1,
@@ -821,23 +972,46 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     fontSize: 13,
     color: '#9ca3af',
+    fontWeight: '500',
   },
 
   // Social Login
   socialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 16,
+    gap: 12,
   },
   socialButton: {
-    width: 60,
-    height: 54,
+    flex: 1,
+    flexDirection: 'row',
+    height: 52,
     borderRadius: 12,
     backgroundColor: '#f9fafb',
     borderWidth: 1.5,
     borderColor: '#e5e7eb',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
+  },
+  socialButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  appleButton: {
+    flexDirection: 'row',
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    gap: 8,
+  },
+  appleButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 
   // Register Section
@@ -845,8 +1019,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 28,
-    paddingBottom: 16,
+    paddingTop: 24,
+    paddingBottom: 12,
   },
   registerText: {
     fontSize: 15,
@@ -854,8 +1028,44 @@ const styles = StyleSheet.create({
   },
   registerLink: {
     fontSize: 15,
-    color: '#3b82f6',
+    color: '#4F46E5',
+    fontWeight: '700',
+  },
+
+  // Guest Button
+  guestButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    marginHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: '#e5e7eb',
+    borderStyle: 'dashed',
+    gap: 8,
+  },
+  guestButtonText: {
+    fontSize: 15,
     fontWeight: '600',
+    color: '#6b7280',
+    flex: 1,
+    textAlign: 'center',
+  },
+
+  // Security Note
+  securityNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    gap: 6,
+  },
+  securityNoteText: {
+    fontSize: 12,
+    color: '#9CA3AF',
   },
 
   // Modal Styles
@@ -994,5 +1204,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#3b82f6',
     fontWeight: '600',
+  },
+
+  // Guest Button
+  guestButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f3f4f6',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 16,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    gap: 8,
+  },
+  guestButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#6b7280',
+    flex: 1,
+    textAlign: 'center',
   },
 });

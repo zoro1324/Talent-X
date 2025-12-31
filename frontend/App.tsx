@@ -11,6 +11,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   LoginScreen,
+  SignupScreen,
   HomeScreen,
   ProfileCreateScreen,
   ProfileViewScreen,
@@ -46,6 +47,11 @@ export default function App() {
         <Stack.Screen
           name="Login"
           component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Register"
+          component={SignupScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

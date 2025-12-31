@@ -589,7 +589,7 @@ export function SignupScreen({ navigation }: Props) {
             ]}
           >
             <LinearGradient
-              colors={['#3b82f6', '#1d4ed8', '#1e40af']}
+              colors={['#4F46E5', '#7C3AED', '#9333EA']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.headerGradient}
@@ -607,10 +607,14 @@ export function SignupScreen({ navigation }: Props) {
               {/* Logo and Title */}
               <View style={styles.headerContent}>
                 <View style={styles.logoContainer}>
-                  <Ionicons name="trophy" size={40} color="#ffffff" />
+                  <MaterialCommunityIcons name="account-plus" size={44} color="#ffffff" />
                 </View>
                 <Text style={styles.appName}>Create Account</Text>
                 <Text style={styles.tagline}>Join the Talent-X community today</Text>
+                <View style={styles.headerBadge}>
+                  <Ionicons name="shield-checkmark" size={14} color="#10B981" />
+                  <Text style={styles.headerBadgeText}>Secure & Fast Registration</Text>
+                </View>
               </View>
 
               {/* Decorative Elements */}
@@ -801,7 +805,7 @@ export function SignupScreen({ navigation }: Props) {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={loading ? ['#93c5fd', '#93c5fd'] : ['#3b82f6', '#1d4ed8']}
+                colors={loading ? ['#A5B4FC', '#A5B4FC'] : ['#4F46E5', '#7C3AED']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.signupButtonGradient}
@@ -868,6 +872,12 @@ export function SignupScreen({ navigation }: Props) {
 
           {/* Footer */}
           <View style={styles.footer}>
+            <View style={styles.securityNote}>
+              <Ionicons name="shield-checkmark" size={16} color="#10B981" />
+              <Text style={styles.securityNoteText}>
+                Your data is protected with 256-bit encryption
+              </Text>
+            </View>
             <Text style={styles.footerText}>
               By creating an account, you agree to our community guidelines
             </Text>
@@ -899,7 +909,7 @@ export function SignupScreen({ navigation }: Props) {
 
             <View style={styles.modalHeader}>
               <LinearGradient
-                colors={['#3b82f6', '#1d4ed8']}
+                colors={['#4F46E5', '#7C3AED']}
                 style={styles.otpIconContainer}
               >
                 <Ionicons name="mail-open-outline" size={36} color="#ffffff" />
@@ -947,7 +957,7 @@ export function SignupScreen({ navigation }: Props) {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={otpLoading ? ['#93c5fd', '#93c5fd'] : ['#3b82f6', '#1d4ed8']}
+                colors={otpLoading ? ['#A5B4FC', '#A5B4FC'] : ['#4F46E5', '#7C3AED']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.verifyButtonGradient}
@@ -1007,6 +1017,8 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
     paddingHorizontal: 24,
     position: 'relative',
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
   },
   backButton: {
     position: 'absolute',
@@ -1050,6 +1062,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: 'rgba(255, 255, 255, 0.9)',
     marginTop: 6,
+  },
+  headerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: 12,
+    gap: 6,
+  },
+  headerBadgeText: {
+    fontSize: 12,
+    color: '#ffffff',
+    fontWeight: '600',
   },
   decorCircle1: {
     position: 'absolute',
@@ -1141,9 +1168,9 @@ const styles = StyleSheet.create({
     height: 56,
   },
   inputContainerFocused: {
-    borderColor: '#3b82f6',
+    borderColor: '#4F46E5',
     backgroundColor: '#ffffff',
-    shadowColor: '#3b82f6',
+    shadowColor: '#4F46E5',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
@@ -1265,8 +1292,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   checkboxChecked: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6',
+    backgroundColor: '#4F46E5',
+    borderColor: '#4F46E5',
   },
   termsText: {
     flex: 1,
@@ -1275,7 +1302,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   termsLink: {
-    color: '#3b82f6',
+    color: '#4F46E5',
     fontWeight: '600',
   },
 
@@ -1283,7 +1310,7 @@ const styles = StyleSheet.create({
   signupButton: {
     borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: '#3b82f6',
+    shadowColor: '#4F46E5',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -1376,7 +1403,7 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     fontSize: 15,
-    color: '#3b82f6',
+    color: '#4F46E5',
     fontWeight: '700',
   },
 
@@ -1385,6 +1412,18 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 40,
     backgroundColor: '#ffffff',
+  },
+  securityNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    gap: 6,
+  },
+  securityNoteText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
   },
   footerText: {
     fontSize: 12,
@@ -1454,7 +1493,7 @@ const styles = StyleSheet.create({
   modalEmail: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#3b82f6',
+    color: '#4F46E5',
     marginTop: 6,
   },
 
@@ -1479,8 +1518,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   otpInputFilled: {
-    borderColor: '#3b82f6',
-    backgroundColor: '#eff6ff',
+    borderColor: '#4F46E5',
+    backgroundColor: '#EEF2FF',
   },
   otpInputError: {
     borderColor: '#ef4444',
@@ -1507,7 +1546,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: '#3b82f6',
+    shadowColor: '#4F46E5',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -1555,7 +1594,7 @@ const styles = StyleSheet.create({
   },
   resendLink: {
     fontSize: 14,
-    color: '#3b82f6',
+    color: '#4F46E5',
     fontWeight: '700',
   },
 });
