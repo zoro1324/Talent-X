@@ -14,10 +14,23 @@ export function generateId(): string {
 }
 
 /**
+ * Parse a date string (YYYY-MM-DD) in local time to avoid timezone shift
+ */
+function parseLocalDate(dateString: string): Date {
+  // Check if it's a date-only string (YYYY-MM-DD)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day); // month is 0-indexed
+  }
+  // For full ISO strings or other formats, use regular parsing
+  return new Date(dateString);
+}
+
+/**
  * Format a date string to a readable format
  */
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+  const date = parseLocalDate(dateString);
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -52,7 +65,15 @@ export function formatDuration(seconds: number): string {
  * Calculate age from date of birth
  */
 export function calculateAge(dateOfBirth: string): number {
-  const birthDate = new Date(dateOfBirth);
+  // Parse date in local time to avoid timezone shift
+  let birthDate: Date;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
+    const [year, month, day] = dateOfBirth.split('-').map(Number);
+    birthDate = new Date(year, month - 1, day);
+  } else {
+    birthDate = new Date(dateOfBirth);
+  }
+  
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
