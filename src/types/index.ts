@@ -100,6 +100,8 @@ export interface TestResult {
 
 /** Navigation route params */
 export type RootStackParamList = {
+  Login: undefined;
+  Register: undefined;
   Home: undefined;
   ProfileCreate: undefined;
   ProfileEdit: { athleteId: string };
