@@ -8,8 +8,8 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TestResultCard, Loading, EmptyState } from '../components';
 import { useAthlete, useTestResults } from '../hooks';

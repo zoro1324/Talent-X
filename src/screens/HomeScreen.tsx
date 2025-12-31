@@ -8,9 +8,9 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AthleteCard, Button, Loading, EmptyState } from '../components';
 import { useAthletes, useTestResults } from '../hooks';

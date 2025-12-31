@@ -36,7 +36,7 @@ export default function App() {
           headerTitleStyle: {
             fontWeight: '600',
           },
-          headerBackTitle: '',
+          headerBackTitleVisible: false,
           contentStyle: {
             backgroundColor: '#f9fafb',
           },

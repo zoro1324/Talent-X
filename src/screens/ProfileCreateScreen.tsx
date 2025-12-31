@@ -8,14 +8,16 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   Alert,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TextInput, Button, Card } from '../components';
 import { useAthletes } from '../hooks';
-import { generateId, isValidDate } from '../utils';
+import { generateId, formatDate } from '../utils';
 import type { RootStackParamList, AthleteProfile } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileCreate'>;
@@ -29,7 +31,8 @@ export function ProfileCreateScreen({ navigation }: Props) {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [gender, setGender] = useState<Gender>('male');
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
@@ -44,10 +47,8 @@ export function ProfileCreateScreen({ navigation }: Props) {
     if (!lastName.trim()) {
       newErrors.lastName = 'Last name is required';
     }
-    if (!dateOfBirth.trim()) {
+    if (!dateOfBirth) {
       newErrors.dateOfBirth = 'Date of birth is required';
-    } else if (!isValidDate(dateOfBirth)) {
-      newErrors.dateOfBirth = 'Enter date as YYYY-MM-DD';
     }
     if (height && (isNaN(Number(height)) || Number(height) <= 0)) {
       newErrors.height = 'Enter a valid height';
@@ -60,6 +61,21 @@ export function ProfileCreateScreen({ navigation }: Props) {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (event.type === 'set' && selectedDate) {
+      setDateOfBirth(selectedDate);
+      setErrors((prev) => ({ ...prev, dateOfBirth: '' }));
+    }
+  };
+
+  const formatDateOfBirth = (): string => {
+    if (!dateOfBirth) return '';
+    return dateOfBirth.toISOString().split('T')[0];
+  };
+
   const handleSave = async () => {
     if (!validate()) return;
 
@@ -70,7 +86,7 @@ export function ProfileCreateScreen({ navigation }: Props) {
         id: generateId(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        dateOfBirth,
+        dateOfBirth: formatDateOfBirth(),
         gender,
         height: height ? Number(height) : undefined,
         weight: weight ? Number(weight) : undefined,
@@ -82,7 +98,8 @@ export function ProfileCreateScreen({ navigation }: Props) {
       await saveAthlete(athlete);
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Failed to save athlete profile');
+      console.error('Error saving athlete:', error);
+      Alert.alert('Error', 'Failed to save athlete profile. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -134,14 +151,29 @@ export function ProfileCreateScreen({ navigation }: Props) {
             autoCapitalize="words"
           />
 
-          <TextInput
-            label="Date of Birth *"
-            value={dateOfBirth}
-            onChangeText={setDateOfBirth}
-            error={errors.dateOfBirth}
-            placeholder="YYYY-MM-DD"
-            keyboardType="numbers-and-punctuation"
-          />
+          <Text style={styles.label}>Date of Birth *</Text>
+          <TouchableOpacity
+            style={[styles.dateInput, errors.dateOfBirth && styles.dateInputError]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={dateOfBirth ? styles.dateText : styles.datePlaceholder}>
+              {dateOfBirth ? formatDate(formatDateOfBirth()) : 'Select date of birth'}
+            </Text>
+          </TouchableOpacity>
+          {errors.dateOfBirth && (
+            <Text style={styles.errorText}>{errors.dateOfBirth}</Text>
+          )}
+          
+          {showDatePicker && (
+            <DateTimePicker
+              value={dateOfBirth || new Date(2000, 0, 1)}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleDateChange}
+              maximumDate={new Date()}
+              minimumDate={new Date(1920, 0, 1)}
+            />
+          )}
 
           <Text style={styles.label}>Gender *</Text>
           <View style={styles.genderContainer}>
@@ -219,8 +251,8 @@ const styles = StyleSheet.create({
   },
   genderContainer: {
     flexDirection: 'row',
-    gap: 12,
     marginBottom: 16,
+    marginHorizontal: -6,
   },
   genderOption: {
     flex: 1,
@@ -229,6 +261,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#e5e7eb',
     alignItems: 'center',
+    marginHorizontal: 6,
   },
   genderOptionSelected: {
     borderColor: '#3b82f6',
@@ -244,5 +277,31 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 24,
+  },
+  dateInput: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 16,
+  },
+  dateInputError: {
+    borderColor: '#ef4444',
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#1f2937',
+  },
+  datePlaceholder: {
+    fontSize: 16,
+    color: '#9ca3af',
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#ef4444',
+    marginTop: -12,
+    marginBottom: 16,
   },
 });

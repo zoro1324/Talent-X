@@ -8,6 +8,7 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  View,
   ViewStyle,
   TextStyle,
 } from 'react-native';
@@ -67,7 +68,7 @@ export function Button({
         />
       ) : (
         <>
-          {icon}
+          {icon && <View style={styles.iconContainer}>{icon}</View>}
           <Text style={textStyles}>{title}</Text>
         </>
       )}
@@ -81,7 +82,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    gap: 8,
   },
   button_primary: {
     backgroundColor: '#3b82f6',
@@ -138,5 +138,8 @@ const styles = StyleSheet.create({
   },
   text_disabled: {
     color: '#9ca3af',
+  },
+  iconContainer: {
+    marginRight: 8,
   },
 });
