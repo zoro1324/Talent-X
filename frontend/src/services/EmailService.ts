@@ -1,51 +1,58 @@
 /**
- * Email Service for sending OTP via Google SMTP
+ * Email Service for sending OTP via EmailJS
  * 
- * SETUP INSTRUCTIONS FOR GOOGLE SMTP:
+ * SETUP INSTRUCTIONS:
+ * 1. Go to https://www.emailjs.com/ and create a free account
+ * 2. Add an Email Service (Gmail recommended):
+ *    - Click "Add New Service"
+ *    - Select "Gmail"
+ *    - Connect your Gmail account
+ *    - Note the Service ID (e.g., "service_xxxxxxx")
  * 
- * 1. Set up Gmail Account (naveen13524g@gmail.com):
- *    - Go to https://myaccount.google.com/security
- *    - Enable 2-Step Verification
+ * 3. Create an Email Template:
+ *    - Click "Email Templates" → "Create New Template"
+ *    - Subject: "Your Talent-X Verification Code: {{otp_code}}"
+ *    - Content:
+ *      ```
+ *      Hello {{to_name}},
+ *      
+ *      Your verification code for Talent-X is:
+ *      
+ *      {{otp_code}}
+ *      
+ *      This code will expire in 10 minutes.
+ *      
+ *      If you didn't request this code, please ignore this email.
+ *      
+ *      Best regards,
+ *      Talent-X Team
+ *      ```
+ *    - Set "To Email" field to: {{to_email}}
+ *    - Note the Template ID (e.g., "template_xxxxxxx")
  * 
- * 2. Create App Password:
- *    - Go to https://myaccount.google.com/apppasswords
- *    - Select "Mail" and "Windows Computer" (or your device)
- *    - Generate a 16-character password
- *    - Copy this password for use below
+ * 4. Get your Public Key:
+ *    - Go to "Account" → "API Keys"
+ *    - Copy your Public Key
  * 
- * 3. Set up a Backend Service (Required - don't expose SMTP credentials in client):
- *    Option A: Firebase Cloud Functions (Recommended)
- *      - Create a Cloud Function to handle email sending
- *      - Store credentials in Firebase Environment Config
- *      - This app calls the function endpoint
- * 
- *    Option B: Simple Node.js Backend
- *      - Create a /api/send-otp endpoint
- *      - Use nodemailer library to send emails
- *      - Store credentials in .env file
- * 
- *    Option C: AWS Lambda + SES
- *      - Configure AWS Lambda function
- *      - Use AWS SES for email sending
- * 
- * 4. Update the API endpoint below
+ * 5. Update the values below with your credentials
  */
 
 // ============================================
-// GOOGLE SMTP CONFIGURATION
+// REPLACE THESE WITH YOUR EMAILJS CREDENTIALS
 // ============================================
-const GOOGLE_SMTP_CONFIG = {
-  SENDER_EMAIL: 'naveen13524g@gmail.com',
-  SENDER_NAME: 'Talent-X Team',
-  // Update with your backend URL after deployment
-  // Local: http://localhost:5000/api/send-otp
-  // Production: https://your-production-domain.com/api/send-otp
-  BACKEND_API_URL: 'http://localhost:5000/api/send-otp',
+const EMAILJS_CONFIG = {
+  SERVICE_ID: 'service_xxxxxxx',   // Replace with your Service ID
+  TEMPLATE_ID: 'template_xxxxxxx', // Replace with your Template ID
+  PUBLIC_KEY: 'xxxxxxxxxxxxxxx',   // Replace with your Public Key
 };
 
-// Check if backend API is configured
-const isBackendConfigured = (): boolean => {
-  return GOOGLE_SMTP_CONFIG.BACKEND_API_URL !== 'https://your-backend-api.com/api/send-otp';
+// Check if EmailJS is configured
+const isEmailJSConfigured = (): boolean => {
+  return (
+    EMAILJS_CONFIG.SERVICE_ID !== 'service_xxxxxxx' &&
+    EMAILJS_CONFIG.TEMPLATE_ID !== 'template_xxxxxxx' &&
+    EMAILJS_CONFIG.PUBLIC_KEY !== 'xxxxxxxxxxxxxxx'
+  );
 };
 
 /**
@@ -56,7 +63,7 @@ export const generateOTP = (): string => {
 };
 
 /**
- * Send OTP email using Google SMTP via Backend API
+ * Send OTP email using EmailJS
  * @param email - Recipient email address
  * @param otpCode - 6-digit OTP code
  * @returns Object with success status and message
@@ -66,40 +73,45 @@ export const sendOTPEmail = async (
   otpCode: string
 ): Promise<{ success: boolean; message: string; otpForDemo?: string }> => {
   
-  // Check if backend API is configured
-  if (!isBackendConfigured()) {
-    console.log('Backend API not configured. Demo mode active.');
+  // Check if EmailJS is configured
+  if (!isEmailJSConfigured()) {
+    console.log('EmailJS not configured. Demo mode active.');
     return {
       success: true,
-      message: 'Demo Mode: Backend not configured. OTP: ' + otpCode,
+      message: 'Demo Mode: EmailJS not configured',
       otpForDemo: otpCode,
     };
   }
 
   try {
-    const response = await fetch(GOOGLE_SMTP_CONFIG.BACKEND_API_URL, {
+    const templateParams = {
+      to_email: email,
+      to_name: email.split('@')[0],
+      otp_code: otpCode,
+      app_name: 'Talent-X',
+    };
+
+    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        to_email: email,
-        to_name: email.split('@')[0],
-        otp_code: otpCode,
-        sender_email: GOOGLE_SMTP_CONFIG.SENDER_EMAIL,
-        sender_name: GOOGLE_SMTP_CONFIG.SENDER_NAME,
+        service_id: EMAILJS_CONFIG.SERVICE_ID,
+        template_id: EMAILJS_CONFIG.TEMPLATE_ID,
+        user_id: EMAILJS_CONFIG.PUBLIC_KEY,
+        template_params: templateParams,
       }),
     });
 
     if (response.ok) {
-      const data = await response.json();
       return {
         success: true,
         message: `OTP sent successfully to ${email}`,
       };
     } else {
       const errorText = await response.text();
-      console.error('Backend API Error:', errorText);
+      console.error('EmailJS Error:', errorText);
       return {
         success: false,
         message: 'Failed to send email. Please try again.',
@@ -117,45 +129,33 @@ export const sendOTPEmail = async (
 };
 
 /**
- * EXAMPLE BACKEND IMPLEMENTATIONS:
- * 
- * Firebase Cloud Function (Node.js):
- * ```javascript
- * const functions = require("firebase-functions");
- * const nodemailer = require("nodemailer");
- * 
- * const transporter = nodemailer.createTransport({
- *   host: "smtp.gmail.com",
- *   port: 587,
- *   secure: false,
- *   auth: {
- *     user: "naveen13524g@gmail.com",
- *     pass: "your-app-password", // 16-char password from step 2
- *   },
- * });
- * 
- * exports.sendOTP = functions.https.onRequest(async (req, res) => {
- *   const { to_email, to_name, otp_code } = req.body;
- *   
- *   try {
- *     await transporter.sendMail({
- *       from: '"Talent-X Team" <naveen13524g@gmail.com>',
- *       to: to_email,
- *       subject: `Your Talent-X Verification Code: ${otp_code}`,
- *       html: `
- *         <h2>Hello ${to_name},</h2>
- *         <p>Your verification code for Talent-X is:</p>
- *         <h1 style="color: #007AFF;">${otp_code}</h1>
- *         <p>This code will expire in 10 minutes.</p>
- *         <p>If you didn't request this code, please ignore this email.</p>
- *         <p>Best regards,<br/>Talent-X Team</p>
- *       `,
- *     });
- *     res.json({ success: true });
- *   } catch (error) {
- *     console.error(error);
- *     res.status(500).json({ success: false, error: error.message });
- *   }
- * });
- * ```
+ * Alternative: Send OTP using Web3Forms (another free option)
+ * Sign up at https://web3forms.com/ to get an access key
  */
+export const sendOTPViaWeb3Forms = async (
+  email: string,
+  otpCode: string,
+  accessKey: string
+): Promise<boolean> => {
+  try {
+    const response = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        access_key: accessKey,
+        subject: `Talent-X Verification Code: ${otpCode}`,
+        from_name: 'Talent-X',
+        to: email,
+        message: `Your Talent-X verification code is: ${otpCode}\n\nThis code expires in 10 minutes.`,
+      }),
+    });
+
+    const data = await response.json();
+    return data.success;
+  } catch (error) {
+    console.error('Web3Forms error:', error);
+    return false;
+  }
+};
