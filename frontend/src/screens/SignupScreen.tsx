@@ -46,8 +46,16 @@ export function SignupScreen({ navigation }: Props) {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Focus states for animated labels
-  const [focusedField, setFocusedField] = useState<string | null>(null);
+  // Use ref instead of state for focus tracking to prevent re-renders
+  const focusedFieldRef = useRef<string | null>(null);
+  const [, forceUpdate] = useState(0);
+
+  // Input refs to maintain focus
+  const nameInputRef = useRef<RNTextInput>(null);
+  const emailInputRef = useRef<RNTextInput>(null);
+  const phoneInputRef = useRef<RNTextInput>(null);
+  const passwordInputRef = useRef<RNTextInput>(null);
+  const confirmPasswordInputRef = useRef<RNTextInput>(null);
 
   // OTP Verification state
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -470,9 +478,6 @@ export function SignupScreen({ navigation }: Props) {
   // Clear field errors on change
   const handleFieldChange = (field: string, value: string, setter: (val: string) => void) => {
     setter(value);
-    if (errors[field as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
     if (field === 'password') {
       calculatePasswordStrength(value);
     }
@@ -487,6 +492,7 @@ export function SignupScreen({ navigation }: Props) {
     icon: string,
     fieldName: string,
     animation: Animated.Value,
+    inputRef: React.RefObject<RNTextInput>,
     options?: {
       keyboardType?: 'default' | 'email-address' | 'phone-pad';
       secureTextEntry?: boolean;
@@ -497,7 +503,6 @@ export function SignupScreen({ navigation }: Props) {
     }
   ) => {
     const error = errors[fieldName as keyof typeof errors];
-    const isFocused = focusedField === fieldName;
 
     return (
       <Animated.View 
@@ -520,28 +525,28 @@ export function SignupScreen({ navigation }: Props) {
         <View 
           style={[
             styles.inputContainer, 
-            isFocused && styles.inputContainerFocused,
             error && styles.inputContainerError
           ]}
         >
           <Ionicons 
             name={icon as any} 
             size={20} 
-            color={isFocused ? '#3b82f6' : error ? '#ef4444' : '#9ca3af'} 
+            color={error ? '#ef4444' : '#9ca3af'} 
             style={styles.inputIcon} 
           />
           <RNTextInput
+            ref={inputRef}
             style={styles.textInput}
             placeholder={placeholder}
             placeholderTextColor="#9ca3af"
             value={value}
             onChangeText={(val) => handleFieldChange(fieldName, val, onChangeText)}
-            onFocus={() => setFocusedField(fieldName)}
-            onBlur={() => setFocusedField(null)}
             keyboardType={options?.keyboardType || 'default'}
             secureTextEntry={options?.secureTextEntry && !options?.toggleState}
             autoCapitalize={options?.autoCapitalize || 'none'}
             autoCorrect={false}
+            autoComplete="off"
+            textContentType="none"
           />
           {options?.showToggle && (
             <TouchableOpacity
@@ -660,6 +665,7 @@ export function SignupScreen({ navigation }: Props) {
               'person-outline',
               'fullName',
               nameAnim,
+              nameInputRef,
               { autoCapitalize: 'words' }
             )}
 
@@ -672,6 +678,7 @@ export function SignupScreen({ navigation }: Props) {
               'mail-outline',
               'email',
               emailAnim,
+              emailInputRef,
               { keyboardType: 'email-address' }
             )}
 
@@ -684,6 +691,7 @@ export function SignupScreen({ navigation }: Props) {
               'call-outline',
               'phone',
               phoneAnim,
+              phoneInputRef,
               { keyboardType: 'phone-pad' }
             )}
 
@@ -696,6 +704,7 @@ export function SignupScreen({ navigation }: Props) {
               'lock-closed-outline',
               'password',
               passwordAnim,
+              passwordInputRef,
               {
                 secureTextEntry: true,
                 showToggle: true,
@@ -758,6 +767,7 @@ export function SignupScreen({ navigation }: Props) {
               'shield-checkmark-outline',
               'confirmPassword',
               confirmPasswordAnim,
+              confirmPasswordInputRef,
               {
                 secureTextEntry: true,
                 showToggle: true,

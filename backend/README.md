@@ -1,52 +1,199 @@
-# Talent-X Backend
+# Talent-X Backend API
 
-Node.js backend server for Talent-X mobile app. Handles email notifications and OTP verification.
+A complete backend API for the Talent-X fitness assessment application with MongoDB database integration.
+
+## Features
+
+- **User Authentication**: JWT-based authentication with email verification
+- **Athlete Management**: CRUD operations for athlete profiles
+- **Test Results**: Store and analyze fitness test results
+- **Email Service**: OTP verification and password reset emails
+- **Rate Limiting**: Protection against abuse
+- **Security**: Helmet.js security headers, password hashing
+
+## Tech Stack
+
+- **Runtime**: Node.js with TypeScript
+- **Framework**: Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT (JSON Web Tokens)
+- **Email**: Nodemailer with Gmail SMTP
+- **Validation**: express-validator
+- **Security**: helmet, bcryptjs, cors
 
 ## Prerequisites
 
-- Node.js (v18 or higher)
+- Node.js v18+ 
+- MongoDB v6+ (local or MongoDB Atlas)
 - npm or yarn
 - Gmail account with App Password configured
 
-## Setup Instructions
+## Installation
 
-### 1. Configure Gmail
-
-1. Go to [myaccount.google.com/security](https://myaccount.google.com/security)
-2. Enable **2-Step Verification** (if not already enabled)
-3. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-4. Select **Mail** and **Windows Computer** (or your device)
-5. Generate a 16-character password
-6. Copy the password
-
-### 2. Install Dependencies
-
-```bash
-npm install
-```
-
-### 3. Configure Environment Variables
-
-1. Copy `.env.example` to `.env`
-2. Update the following values in `.env`:
+1. **Install dependencies**
+   ```bash
+   cd backend
+   npm install
    ```
-   GMAIL_USER=naveen13524g@gmail.com
-   GMAIL_APP_PASSWORD=your-16-character-password-from-step-1
+
+2. **Configure environment variables**
+   
+   Create a `.env` file with the following:
+   ```env
+   # MongoDB Configuration
+   MONGODB_URI=mongodb://localhost:27017/talentx
+   
+   # JWT Configuration
+   JWT_SECRET=your-super-secret-jwt-key-change-in-production
+   JWT_EXPIRY=7d
+   JWT_REFRESH_SECRET=your-refresh-token-secret
+   JWT_REFRESH_EXPIRY=30d
+   
+   # Gmail SMTP Configuration
+   GMAIL_USER=your-email@gmail.com
+   GMAIL_APP_PASSWORD=your-gmail-app-password
+   
+   # Server Configuration
    PORT=5000
+   NODE_ENV=development
+   
+   # CORS Configuration
+   CORS_ORIGIN=http://localhost:3000,http://localhost:19006
    ```
 
-### 4. Build and Run
+3. **Start MongoDB**
+   
+   **Local MongoDB:**
+   ```bash
+   mongod
+   ```
+   
+   **Or use MongoDB Atlas** - Update `MONGODB_URI` with your Atlas connection string
 
-**Development mode (with auto-reload):**
-```bash
-npm run dev
+4. **Run the server**
+   ```bash
+   # Development mode
+   npm run dev
+   
+   # Production build
+   npm run build
+   npm start
+   ```
+
+## API Endpoints
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login user |
+| POST | `/api/auth/verify-otp` | Verify email with OTP |
+| POST | `/api/auth/resend-otp` | Resend OTP |
+| GET | `/api/auth/me` | Get current user (protected) |
+| PUT | `/api/auth/me` | Update user profile (protected) |
+| PUT | `/api/auth/change-password` | Change password (protected) |
+| POST | `/api/auth/forgot-password` | Request password reset |
+| POST | `/api/auth/reset-password` | Reset password with OTP |
+
+### Athletes (Protected - Requires JWT)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/athletes` | Create athlete profile |
+| GET | `/api/athletes` | Get all athletes |
+| GET | `/api/athletes/:id` | Get single athlete |
+| PUT | `/api/athletes/:id` | Update athlete |
+| DELETE | `/api/athletes/:id` | Delete athlete (soft) |
+| PATCH | `/api/athletes/:id/restore` | Restore deleted athlete |
+| GET | `/api/athletes/:id/stats` | Get athlete statistics |
+
+### Test Results (Protected - Requires JWT)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/tests` | Save test result |
+| GET | `/api/tests` | Get all test results |
+| GET | `/api/tests/:id` | Get single test result |
+| DELETE | `/api/tests/:id` | Delete test result |
+| GET | `/api/tests/athlete/:id/history` | Get athlete test history |
+| GET | `/api/tests/leaderboard/:testType` | Get leaderboard |
+| GET | `/api/tests/stats/summary` | Get user statistics |
+
+### Email
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/send-otp` | Send OTP email |
+| GET | `/api/health` | Health check |
+
+## Database Schema
+
+### User
+```javascript
+{
+  email: String,        // unique
+  password: String,     // hashed with bcrypt
+  firstName: String,
+  lastName: String,
+  isVerified: Boolean,
+  verificationOTP: String,
+  otpExpiry: Date,
+  lastLogin: Date
+}
 ```
 
-**Production mode:**
-```bash
-npm run build
-npm start
+### Athlete
+```javascript
+{
+  userId: ObjectId,     // ref: User
+  firstName: String,
+  lastName: String,
+  dateOfBirth: Date,
+  gender: 'male' | 'female' | 'other',
+  height: Number,       // in cm
+  weight: Number,       // in kg
+  sport: String,
+  isActive: Boolean
+}
 ```
+
+### TestResult
+```javascript
+{
+  athleteId: ObjectId,  // ref: Athlete
+  userId: ObjectId,     // ref: User
+  testType: 'squats' | 'pushups' | 'jump',
+  duration: Number,     // in seconds
+  totalReps: Number,
+  score: {
+    rawScore: Number,
+    standardizedScore: Number,  // 0-100
+    grade: 'A' | 'B' | 'C' | 'D' | 'F',
+    feedback: [String]
+  },
+  averageFormScore: Number
+}
+```
+
+## Authentication
+
+All protected routes require a JWT token in the Authorization header:
+```
+Authorization: Bearer <your-jwt-token>
+```
+
+## Scripts
+
+```bash
+npm run dev      # Start development server
+npm run build    # Build TypeScript
+npm start        # Start production server
+npm run watch    # Watch mode for TypeScript
+```
+
+## Rate Limits
+
+- General API: 100 requests / 15 minutes
+- Authentication: 10 requests / 15 minutes
+- OTP requests: 5 requests / 10 minutes
+- Test submissions: 30 requests / hour
 
 The server will start on `http://localhost:5000`
 
