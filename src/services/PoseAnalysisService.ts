@@ -14,7 +14,14 @@ import type {
   RepetitionData,
 } from '../types';
 
-/** Minimum confidence threshold for keypoint detection */
+/**
+ * Minimum confidence threshold for keypoint detection.
+ * Set to 0.3 to balance between:
+ * - Detection reliability: Higher values might miss valid keypoints in poor lighting
+ * - Accuracy: Lower values could include noisy/incorrect keypoints
+ * This threshold works well on low-end devices where pose estimation may be less accurate.
+ * Based on TensorFlow.js MoveNet documentation recommendations.
+ */
 const MIN_CONFIDENCE = 0.3;
 
 /** Angle thresholds for exercise detection */

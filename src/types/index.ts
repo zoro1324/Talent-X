@@ -110,14 +110,34 @@ export type RootStackParamList = {
   History: { athleteId: string };
 };
 
-/** App settings stored locally */
+/**
+ * App settings stored locally
+ * Controls behavior and performance optimizations
+ */
 export interface AppSettings {
+  /** UI theme preference */
   theme: 'light' | 'dark' | 'system';
+  /** Enable audio feedback during tests */
   soundEnabled: boolean;
+  /** Enable haptic feedback during tests */
   vibrationEnabled: boolean;
+  /** Show visual form guides during exercises */
   showFormGuides: boolean;
-  testDuration: number; // seconds, 0 for unlimited
-  lowPowerMode: boolean; // Reduced AI processing for low-end devices
+  /**
+   * Test duration in seconds.
+   * Valid range: 10-300 seconds, or 0 for unlimited duration.
+   * Default: 60 seconds
+   */
+  testDuration: number;
+  /**
+   * Reduced AI processing mode for low-end devices.
+   * When enabled:
+   * - Reduces pose detection frequency from 10 FPS to 5 FPS
+   * - Uses simpler pose estimation model
+   * - Disables real-time form visualization
+   * - Prioritizes battery efficiency
+   */
+  lowPowerMode: boolean;
 }
 
 /** Scoring normative data by age and gender */

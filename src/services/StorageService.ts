@@ -1,6 +1,14 @@
 /**
  * Offline storage service using AsyncStorage
  * Provides persistent local storage for athletes, test results, and settings
+ * 
+ * Note on Performance:
+ * - AsyncStorage stores data as JSON strings
+ * - For typical use (< 100 athletes, < 1000 test results), performance is adequate
+ * - For larger datasets, consider implementing:
+ *   1. Pagination: Load data in chunks
+ *   2. Compression: Use lz-string or similar for large result sets
+ *   3. SQLite: Migrate to expo-sqlite for complex queries
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,6 +23,10 @@ const STORAGE_KEYS = {
   TEST_RESULTS: '@talent_x_results',
   SETTINGS: '@talent_x_settings',
 } as const;
+
+/** Maximum recommended items before considering pagination/optimization */
+const MAX_RECOMMENDED_ATHLETES = 100;
+const MAX_RECOMMENDED_RESULTS = 1000;
 
 /** Default app settings */
 const DEFAULT_SETTINGS: AppSettings = {

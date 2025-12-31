@@ -40,10 +40,30 @@ export function TestCameraScreen({ navigation, route }: Props) {
   const exerciseTracker = useExerciseTracker(testType);
   const countdown = useCountdown(testInfo.duration);
 
-  // Simulated pose for demo - in production, integrate with TensorFlow.js
+  /**
+   * DEMO/DEVELOPMENT CODE: Simulated pose generation
+   * 
+   * TODO: Replace with actual TensorFlow.js MoveNet integration before production.
+   * 
+   * Production implementation should:
+   * 1. Use @tensorflow/tfjs and @tensorflow-models/pose-detection
+   * 2. Initialize MoveNet SinglePose Lightning model (optimized for mobile)
+   * 3. Process camera frames through the model
+   * 4. Return real keypoint positions with confidence scores
+   * 
+   * Example integration:
+   * ```
+   * import * as poseDetection from '@tensorflow-models/pose-detection';
+   * const detector = await poseDetection.createDetector(
+   *   poseDetection.SupportedModels.MoveNet,
+   *   { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
+   * );
+   * const poses = await detector.estimatePoses(cameraFrame);
+   * ```
+   */
   const generateSimulatedPose = useCallback((): Pose => {
-    // Generate simulated keypoints for demo purposes
-    // In production, this would come from TensorFlow.js pose detection
+    // Generate simulated keypoints for demo/testing purposes
+    // This simulates a person doing exercise movements
     const baseY = 300;
     const time = Date.now() / 1000;
     const movement = Math.sin(time * 2) * 50;
