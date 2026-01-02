@@ -31,21 +31,6 @@ router.get('/', getSports);
 router.post('/seed', seedSportsData);
 
 /**
- * @route   GET /api/sports/:id
- * @desc    Get a single sport by ID
- * @access  Public
- */
-router.get(
-  '/:id',
-  [
-    param('id')
-      .isInt({ min: 1 })
-      .withMessage('Invalid sport ID'),
-  ],
-  getSport
-);
-
-/**
  * @route   GET /api/sports/:id/exercises
  * @desc    Get exercises for a specific sport
  * @access  Public
@@ -62,6 +47,21 @@ router.get(
       .withMessage('Difficulty must be beginner, intermediate, or advanced'),
   ],
   getSportExercises
+);
+
+/**
+ * @route   GET /api/sports/:id
+ * @desc    Get a single sport by ID
+ * @access  Public
+ */
+router.get(
+  '/:id',
+  [
+    param('id')
+      .isInt({ min: 1 })
+      .withMessage('Invalid sport ID'),
+  ],
+  getSport
 );
 
 // Protected routes - require authentication

@@ -2,14 +2,18 @@
  * Application configuration
  */
 
-// API Base URL - Update this based on your environment
-// For development on same machine: http://localhost:5000/api
-// For testing on physical device: http://<YOUR_IP_ADDRESS>:5000/api
-// For production: https://your-api-domain.com/api
+// API Configuration
+// IMPORTANT: Update HOST_IP with your computer's local IP address
+// To find your IP:
+// - Windows: Open CMD and run 'ipconfig' - look for IPv4 Address
+// - Mac/Linux: Run 'ifconfig' or 'ip addr' in terminal
+
+const HOST_IP = '192.168.205.57'; // Your computer's local IP address
+const USE_EMULATOR = true; // Set to false when testing on physical device
 
 export const API_CONFIG = {
-  // Use your computer's IP address when testing on Android/iOS device
-  BASE_URL: 'http://192.168.205.57:5000/api',
+  // Automatically uses 10.0.2.2 for emulator or your IP for physical device
+  BASE_URL: `http://${USE_EMULATOR ? '10.0.2.2' : HOST_IP}:5000/api`,
   
   // Timeout for API requests (in milliseconds)
   TIMEOUT: 30000,

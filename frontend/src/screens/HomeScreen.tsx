@@ -17,6 +17,7 @@ import {
   Animated,
   ImageBackground,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,88 +31,20 @@ const { width } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-// Fallback sports categories (used when API is unavailable)
-const fallbackSportsCategories = [
-  {
-    id: '1',
-    name: 'Cricket',
-    icon: '🏏',
-    color: ['#4CAF50', '#2E7D32'],
-    image: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400',
-    athletes: 0,
-  },
-  {
-    id: '2',
-    name: 'Basketball',
-    icon: '🏀',
-    color: ['#FF9800', '#E65100'],
-    image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400',
-    athletes: 0,
-  },
-  {
-    id: '3',
-    name: 'Swimming',
-    icon: '🏊',
-    color: ['#2196F3', '#0D47A1'],
-    image: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400',
-    athletes: 0,
-  },
-  {
-    id: '4',
-    name: 'Volleyball',
-    icon: '🏐',
-    color: ['#9C27B0', '#6A1B9A'],
-    image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=400',
-    athletes: 0,
-  },
-  {
-    id: '5',
-    name: 'Kabaddi',
-    icon: '🤼',
-    color: ['#F44336', '#C62828'],
-    image: 'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=400',
-    athletes: 0,
-  },
-  {
-    id: '6',
-    name: 'Football',
-    icon: '⚽',
-    color: ['#00BCD4', '#00838F'],
-    image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400',
-    athletes: 0,
-  },
-  {
-    id: '7',
-    name: 'Tennis',
-    icon: '🎾',
-    color: ['#CDDC39', '#9E9D24'],
-    image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400',
-    athletes: 0,
-  },
-  {
-    id: '8',
-    name: 'Athletics',
-    icon: '🏃',
-    color: ['#FF5722', '#BF360C'],
-    image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400',
-    athletes: 0,
-  },
-];
+type QuickStat = {
+  label: string;
+  value: string;
+  icon: string;
+  trend: string;
+};
 
-// Quick stats data
-const quickStats = [
-  { label: 'Total Athletes', value: '1,547', icon: '👥', trend: '+12%' },
-  { label: 'Tests Today', value: '89', icon: '📊', trend: '+5%' },
-  { label: 'Active Sports', value: '8', icon: '🏆', trend: '' },
-  { label: 'Avg Score', value: '78.5', icon: '⭐', trend: '+3%' },
-];
-
-// Featured achievements
-const achievements = [
-  { id: '1', title: 'Top Performer', athlete: 'Rahul Kumar', sport: 'Cricket', score: 95 },
-  { id: '2', title: 'Most Improved', athlete: 'Priya Singh', sport: 'Swimming', score: 88 },
-  { id: '3', title: 'Rising Star', athlete: 'Amit Sharma', sport: 'Basketball', score: 82 },
-];
+type Achievement = {
+  id: string;
+  title: string;
+  athlete: string;
+  sport: string;
+  score: number;
+};
 
 export function HomeScreen({ navigation }: Props) {
   const { athletes, loading, refresh } = useAthletes();
@@ -120,8 +53,12 @@ export function HomeScreen({ navigation }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSport, setSelectedSport] = useState<string | null>(null);
   const [filteredAthletes, setFilteredAthletes] = useState<AthleteProfile[]>([]);
-  const [sportsCategories, setSportsCategories] = useState<SportCategory[]>(fallbackSportsCategories);
+  const [sportsCategories, setSportsCategories] = useState<SportCategory[]>([]);
   const [sportsLoading, setSportsLoading] = useState(true);
+  const [quickStats, setQuickStats] = useState<QuickStat[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [achievementsLoading, setAchievementsLoading] = useState(true);
   const scrollY = new Animated.Value(0);
 
   // Fetch sports categories from API
@@ -129,20 +66,51 @@ export function HomeScreen({ navigation }: Props) {
     try {
       setSportsLoading(true);
       const sports = await ApiService.getSports();
-      if (sports && sports.length > 0) {
-        setSportsCategories(sports);
-      }
+      setSportsCategories(sports);
     } catch (error) {
-      console.log('Using fallback sports categories');
-      // Keep using fallback data
+      console.error('Failed to load sports:', error);
+      Alert.alert('Error', 'Failed to load sports categories. Please try again.');
     } finally {
       setSportsLoading(false);
     }
   }, []);
 
+  // Fetch dashboard stats from API
+  const loadDashboardStats = useCallback(async () => {
+    try {
+      setStatsLoading(true);
+      const stats = await ApiService.getDashboardStats();
+      setQuickStats([
+        { label: 'Total Athletes', value: stats.totalAthletes, icon: '👥', trend: stats.trends.athletes },
+        { label: 'Tests Today', value: stats.testsToday, icon: '📊', trend: stats.trends.tests },
+        { label: 'Active Sports', value: stats.activeSports, icon: '🏆', trend: stats.trends.sports },
+        { label: 'Avg Score', value: stats.avgScore, icon: '⭐', trend: stats.trends.score },
+      ]);
+    } catch (error) {
+      console.error('Failed to load dashboard stats:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  }, []);
+
+  // Fetch achievements from API
+  const loadAchievements = useCallback(async () => {
+    try {
+      setAchievementsLoading(true);
+      const data = await ApiService.getAchievements(3);
+      setAchievements(data);
+    } catch (error) {
+      console.error('Failed to load achievements:', error);
+    } finally {
+      setAchievementsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadSportsCategories();
-  }, [loadSportsCategories]);
+    loadDashboardStats();
+    loadAchievements();
+  }, [loadSportsCategories, loadDashboardStats, loadAchievements]);
 
   useEffect(() => {
     // Calculate test counts per athlete
@@ -332,13 +300,19 @@ export function HomeScreen({ navigation }: Props) {
         {/* Quick Stats */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📊 Quick Stats</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.statsContainer}
-          >
-            {quickStats.map(renderStatCard)}
-          </ScrollView>
+          {statsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#4F46E5" />
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.statsContainer}
+            >
+              {quickStats.map(renderStatCard)}
+            </ScrollView>
+          )}
         </View>
 
         {/* Sports Categories */}
@@ -347,26 +321,42 @@ export function HomeScreen({ navigation }: Props) {
             <Text style={styles.sectionTitle}>🏅 Sports Categories</Text>
             <Text style={styles.sectionHint}>Tap to see exercises</Text>
           </View>
-          <FlatList
-            data={sportsCategories}
-            renderItem={renderSportCard}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.sportsContainer}
-          />
+          {sportsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#4F46E5" />
+            </View>
+          ) : sportsCategories.length === 0 ? (
+            <Text style={styles.emptyText}>No sports available</Text>
+          ) : (
+            <FlatList
+              data={sportsCategories}
+              renderItem={renderSportCard}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.sportsContainer}
+            />
+          )}
         </View>
 
         {/* Featured Achievements */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🏆 Featured Achievements</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.achievementsContainer}
-          >
-            {achievements.map(renderAchievement)}
-          </ScrollView>
+          {achievementsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#4F46E5" />
+            </View>
+          ) : achievements.length === 0 ? (
+            <Text style={styles.emptyText}>No achievements yet</Text>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.achievementsContainer}
+            >
+              {achievements.map(renderAchievement)}
+            </ScrollView>
+          )}
         </View>
 
         {/* Athletes Section */}
@@ -863,5 +853,16 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 40,
+  },
+  loadingContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    paddingHorizontal: 20,
+    fontSize: 14,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
   },
 });

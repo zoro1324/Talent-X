@@ -346,4 +346,38 @@ export class ApiService {
   static async logout(): Promise<void> {
     await this.clearToken();
   }
+
+  // ============ Dashboard API ============
+
+  /**
+   * Get dashboard statistics
+   */
+  static async getDashboardStats(): Promise<{
+    totalAthletes: string;
+    testsToday: string;
+    activeSports: string;
+    avgScore: string;
+    trends: {
+      athletes: string;
+      tests: string;
+      sports: string;
+      score: string;
+    };
+  }> {
+    return this.get('/dashboard/stats');
+  }
+
+  /**
+   * Get achievements/top performers
+   */
+  static async getAchievements(limit?: number): Promise<Array<{
+    id: string;
+    title: string;
+    athlete: string;
+    sport: string;
+    score: number;
+  }>> {
+    const query = limit ? `?limit=${limit}` : '';
+    return this.get(`/dashboard/achievements${query}`);
+  }
 }
