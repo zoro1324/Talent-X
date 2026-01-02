@@ -11,3 +11,4 @@ export { TestSelectScreen } from './TestSelectScreen';
 export { TestCameraScreen } from './TestCameraScreen';
 export { TestResultScreen } from './TestResultScreen';
 export { HistoryScreen } from './HistoryScreen';
+export { SportExercisesScreen } from './SportExercisesScreen';

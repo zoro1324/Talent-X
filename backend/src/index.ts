@@ -3,7 +3,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { connectDB, syncDB, closeDB } from './config/database';
-import { emailRoutes, authRoutes, athleteRoutes, testResultRoutes } from './routes';
+import { emailRoutes, authRoutes, athleteRoutes, testResultRoutes, sportRoutes } from './routes';
 import { apiLimiter } from './middleware';
 
 const app: Express = express();
@@ -46,6 +46,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/athletes', athleteRoutes);
 app.use('/api/tests', testResultRoutes);
+app.use('/api/sports', sportRoutes);
 app.use('/api', emailRoutes);
 
 // Root endpoint
@@ -84,6 +85,14 @@ app.get('/', (req: Request, res: Response) => {
         history: 'GET /api/tests/athlete/:athleteId/history',
         leaderboard: 'GET /api/tests/leaderboard/:testType',
         stats: 'GET /api/tests/stats/summary',
+      },
+      sports: {
+        list: 'GET /api/sports',
+        get: 'GET /api/sports/:id',
+        exercises: 'GET /api/sports/:id/exercises',
+        create: 'POST /api/sports',
+        createExercise: 'POST /api/sports/:id/exercises',
+        seed: 'POST /api/sports/seed',
       },
       email: {
         sendOTP: 'POST /api/send-otp',

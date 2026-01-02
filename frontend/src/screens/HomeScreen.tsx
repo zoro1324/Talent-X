@@ -16,27 +16,29 @@ import {
   Dimensions,
   Animated,
   ImageBackground,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AthleteCard, Button, Loading, EmptyState } from '../components';
 import { useAthletes, useTestResults } from '../hooks';
+import { ApiService, SportCategory } from '../services';
 import type { RootStackParamList, AthleteProfile } from '../types';
 
 const { width } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-// Sports categories with online images
-const sportsCategories = [
+// Fallback sports categories (used when API is unavailable)
+const fallbackSportsCategories = [
   {
     id: '1',
     name: 'Cricket',
     icon: '🏏',
     color: ['#4CAF50', '#2E7D32'],
     image: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400',
-    athletes: 245,
+    athletes: 0,
   },
   {
     id: '2',
@@ -44,7 +46,7 @@ const sportsCategories = [
     icon: '🏀',
     color: ['#FF9800', '#E65100'],
     image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400',
-    athletes: 189,
+    athletes: 0,
   },
   {
     id: '3',
@@ -52,7 +54,7 @@ const sportsCategories = [
     icon: '🏊',
     color: ['#2196F3', '#0D47A1'],
     image: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400',
-    athletes: 156,
+    athletes: 0,
   },
   {
     id: '4',
@@ -60,7 +62,7 @@ const sportsCategories = [
     icon: '🏐',
     color: ['#9C27B0', '#6A1B9A'],
     image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=400',
-    athletes: 134,
+    athletes: 0,
   },
   {
     id: '5',
@@ -68,7 +70,7 @@ const sportsCategories = [
     icon: '🤼',
     color: ['#F44336', '#C62828'],
     image: 'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=400',
-    athletes: 98,
+    athletes: 0,
   },
   {
     id: '6',
@@ -76,7 +78,7 @@ const sportsCategories = [
     icon: '⚽',
     color: ['#00BCD4', '#00838F'],
     image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400',
-    athletes: 312,
+    athletes: 0,
   },
   {
     id: '7',
@@ -84,15 +86,15 @@ const sportsCategories = [
     icon: '🎾',
     color: ['#CDDC39', '#9E9D24'],
     image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400',
-    athletes: 87,
+    athletes: 0,
   },
   {
     id: '8',
     name: 'Athletics',
     icon: '🏃',
     color: ['#FF5722', '#BF360C'],
-    image: 'https://images.unsplash.com/photo-1461896836934- voices-trail?w=400',
-    athletes: 276,
+    image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400',
+    athletes: 0,
   },
 ];
 
@@ -118,7 +120,29 @@ export function HomeScreen({ navigation }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSport, setSelectedSport] = useState<string | null>(null);
   const [filteredAthletes, setFilteredAthletes] = useState<AthleteProfile[]>([]);
+  const [sportsCategories, setSportsCategories] = useState<SportCategory[]>(fallbackSportsCategories);
+  const [sportsLoading, setSportsLoading] = useState(true);
   const scrollY = new Animated.Value(0);
+
+  // Fetch sports categories from API
+  const loadSportsCategories = useCallback(async () => {
+    try {
+      setSportsLoading(true);
+      const sports = await ApiService.getSports();
+      if (sports && sports.length > 0) {
+        setSportsCategories(sports);
+      }
+    } catch (error) {
+      console.log('Using fallback sports categories');
+      // Keep using fallback data
+    } finally {
+      setSportsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSportsCategories();
+  }, [loadSportsCategories]);
 
   useEffect(() => {
     // Calculate test counts per athlete
@@ -160,12 +184,14 @@ export function HomeScreen({ navigation }: Props) {
     navigation.navigate('ProfileCreate');
   };
 
-  const handleSportPress = (sportName: string) => {
-    if (selectedSport === sportName) {
-      setSelectedSport(null);
-    } else {
-      setSelectedSport(sportName);
-    }
+  const handleSportPress = (sport: SportCategory) => {
+    // Navigate to SportExercises screen instead of filtering
+    navigation.navigate('SportExercises', {
+      sportId: sport.id,
+      sportName: sport.name,
+      sportIcon: sport.icon,
+      sportColor: sport.color,
+    });
   };
 
   const clearFilters = () => {
@@ -173,13 +199,10 @@ export function HomeScreen({ navigation }: Props) {
     setSelectedSport(null);
   };
 
-  const renderSportCard = ({ item }: { item: typeof sportsCategories[0] }) => (
+  const renderSportCard = ({ item }: { item: SportCategory }) => (
     <TouchableOpacity
-      style={[
-        styles.sportCard,
-        selectedSport === item.name && styles.sportCardSelected,
-      ]}
-      onPress={() => handleSportPress(item.name)}
+      style={styles.sportCard}
+      onPress={() => handleSportPress(item)}
       activeOpacity={0.8}
     >
       <ImageBackground
@@ -196,11 +219,9 @@ export function HomeScreen({ navigation }: Props) {
           <Text style={styles.sportAthletes}>{item.athletes} athletes</Text>
         </LinearGradient>
       </ImageBackground>
-      {selectedSport === item.name && (
-        <View style={styles.selectedIndicator}>
-          <Text style={styles.selectedIndicatorText}>✓</Text>
-        </View>
-      )}
+      <View style={styles.sportCardArrow}>
+        <Text style={styles.sportCardArrowText}>→</Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -324,11 +345,7 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>🏅 Sports Categories</Text>
-            {selectedSport && (
-              <TouchableOpacity onPress={() => setSelectedSport(null)}>
-                <Text style={styles.clearFilterText}>Clear Filter</Text>
-              </TouchableOpacity>
-            )}
+            <Text style={styles.sectionHint}>Tap to see exercises</Text>
           </View>
           <FlatList
             data={sportsCategories}
@@ -684,21 +701,26 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
     marginTop: 2,
   },
-  selectedIndicator: {
+  sportCardArrow: {
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: '#4F46E5',
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 12,
     width: 24,
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  selectedIndicatorText: {
-    color: '#FFFFFF',
+  sportCardArrowText: {
+    color: '#1F2937',
     fontSize: 14,
     fontWeight: '700',
+  },
+  sectionHint: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontStyle: 'italic',
   },
   achievementsContainer: {
     paddingHorizontal: 16,

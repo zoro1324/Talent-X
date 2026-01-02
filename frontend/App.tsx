@@ -19,6 +19,7 @@ import {
   TestCameraScreen,
   TestResultScreen,
   HistoryScreen,
+  SportExercisesScreen,
 } from './src/screens';
 import type { RootStackParamList } from './src/types';
 
@@ -94,6 +95,11 @@ export default function App() {
           name="History"
           component={HistoryScreen}
           options={{ title: 'Test History' }}
+        />
+        <Stack.Screen
+          name="SportExercises"
+          component={SportExercisesScreen}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -110,6 +110,12 @@ export type RootStackParamList = {
   TestCamera: { athleteId: string; testType: FitnessTestType };
   TestResult: { resultId: string };
   History: { athleteId: string };
+  SportExercises: {
+    sportId: string;
+    sportName: string;
+    sportIcon: string;
+    sportColor: string[];
+  };
 };
 
 /**
