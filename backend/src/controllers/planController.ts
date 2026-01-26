@@ -5,10 +5,18 @@ import TestResult from '../models/TestResult';
 import Athlete from '../models/Athlete';
 import { Op } from 'sequelize';
 
+// Extend Express Request type to include user from auth middleware
+interface AuthRequest extends Request {
+  user?: {
+    id: number;
+    email: string;
+  };
+}
+
 /**
  * Generate a personalized training plan for an athlete
  */
-export const generatePlan = async (req: Request, res: Response): Promise<void> => {
+export const generatePlan = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { athleteId, sport, difficulty, weeklyVolume, userAvailability } = req.body;
 
@@ -167,7 +175,7 @@ function getWorkoutTemplates(sport: string, difficulty: string) {
 /**
  * Adapt an existing training plan based on recent performance
  */
-export const adaptPlan = async (req: Request, res: Response): Promise<void> => {
+export const adaptPlan = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { planId } = req.params;
 
@@ -310,7 +318,7 @@ function analyzePerformanceTrends(
 /**
  * Get athlete's active training plan
  */
-export const getActivePlan = async (req: Request, res: Response): Promise<void> => {
+export const getActivePlan = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { athleteId } = req.params;
 
@@ -336,9 +344,17 @@ export const getActivePlan = async (req: Request, res: Response): Promise<void> 
         {
           model: PlanWorkout,
           as: 'workouts',
-          order: [['weekNumber', 'ASC'], ['dayNumber', 'ASC']],
         },
       ],
+      order: [[
+        { model: PlanWorkout, as: 'workouts' },
+        'weekNumber',
+        'ASC'
+      ], [
+        { model: PlanWorkout, as: 'workouts' },
+        'dayNumber',
+        'ASC'
+      ]],
     });
 
     if (!plan) {
@@ -356,7 +372,7 @@ export const getActivePlan = async (req: Request, res: Response): Promise<void> 
 /**
  * Mark a workout as completed
  */
-export const completeWorkout = async (req: Request, res: Response): Promise<void> => {
+export const completeWorkout = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { workoutId } = req.params;
 
