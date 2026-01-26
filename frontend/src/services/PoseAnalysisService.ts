@@ -487,6 +487,16 @@ export class PoseAnalysisService {
       situps: [['left_shoulder', 'right_shoulder'], ['left_hip', 'right_hip'], ['left_knee', 'right_knee']],
       pullups: [['left_shoulder', 'right_shoulder'], ['left_elbow', 'right_elbow'], ['left_wrist', 'right_wrist']],
       running: [['left_hip', 'right_hip'], ['left_ankle', 'right_ankle']],
+      plank: [['left_shoulder', 'right_shoulder'], ['left_hip', 'right_hip'], ['left_ankle', 'right_ankle']],
+      wall_sit: [['left_hip', 'right_hip'], ['left_knee', 'right_knee'], ['left_ankle', 'right_ankle']],
+      burpees: [['left_shoulder', 'right_shoulder'], ['left_hip', 'right_hip'], ['left_ankle', 'right_ankle']],
+      lunges: [['left_hip', 'right_hip'], ['left_knee', 'right_knee'], ['left_ankle', 'right_ankle']],
+      mountain_climbers: [['left_shoulder', 'right_shoulder'], ['left_hip', 'right_hip'], ['left_knee', 'right_knee']],
+      broad_jump: [['left_hip', 'right_hip'], ['left_ankle', 'right_ankle']],
+      single_leg_balance: [['left_ankle', 'right_ankle'], ['left_hip', 'right_hip']],
+      lateral_hops: [['left_hip', 'right_hip'], ['left_ankle', 'right_ankle']],
+      hand_release_pushups: [['left_shoulder', 'right_shoulder'], ['left_wrist', 'right_wrist'], ['left_hip', 'right_hip']],
+      shuttle_run: [['left_hip', 'right_hip'], ['left_ankle', 'right_ankle']],
     };
 
     const required = requiredKeypoints[testType];
