@@ -11,3 +11,4 @@ export { AthleteCard } from './AthleteCard';
 export { TestResultCard } from './TestResultCard';
 export { TestSelectCard } from './TestSelectCard';
 export { ScoreDisplay } from './ScoreDisplay';
+export { PlanWidget } from './PlanWidget';

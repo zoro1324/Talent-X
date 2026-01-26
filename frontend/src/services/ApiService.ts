@@ -380,4 +380,91 @@ export class ApiService {
     const query = limit ? `?limit=${limit}` : '';
     return this.get(`/dashboard/achievements${query}`);
   }
+
+  /**
+   * Get segmented leaderboard
+   */
+  static async getSegmentedLeaderboard(filters?: {
+    sport?: string;
+    ageGroup?: 'U12' | 'U14' | 'U16' | 'U18' | 'U20' | 'adult';
+    school?: string;
+    club?: string;
+    testType?: string;
+    limit?: number;
+  }): Promise<{
+    data: Array<{
+      rank: number;
+      athlete: {
+        id: number;
+        name: string;
+        sport: string;
+        school: string | null;
+        club: string | null;
+        age: number;
+      };
+      score: number;
+      testType: string;
+      formScore: number;
+      totalTests: number;
+      lastUpdated: string;
+    }>;
+    filters: unknown;
+    totalEntries: number;
+  }> {
+    const queryParams = new URLSearchParams();
+    if (filters?.sport) queryParams.append('sport', filters.sport);
+    if (filters?.ageGroup) queryParams.append('ageGroup', filters.ageGroup);
+    if (filters?.school) queryParams.append('school', filters.school);
+    if (filters?.club) queryParams.append('club', filters.club);
+    if (filters?.testType) queryParams.append('testType', filters.testType);
+    if (filters?.limit) queryParams.append('limit', filters.limit.toString());
+    
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return this.get(`/dashboard/leaderboard${query}`);
+  }
+
+  // ============ Training Plans API ============
+
+  /**
+   * Generate a new training plan
+   */
+  static async generatePlan(data: {
+    athleteId: number;
+    sport: string;
+    difficulty: 'beginner' | 'intermediate' | 'advanced' | 'elite';
+    weeklyVolume?: number;
+    userAvailability?: number[]; // Days of week (1-7)
+  }): Promise<{ message: string; plan: unknown }> {
+    return this.post('/plans/generate', data);
+  }
+
+  /**
+   * Adapt existing plan based on performance
+   */
+  static async adaptPlan(planId: number): Promise<{
+    message: string;
+    plan: unknown;
+    adaptationSummary: {
+      trend: 'improving' | 'stable' | 'declining';
+      volumeChange: number;
+      intensityChange: number;
+    };
+  }> {
+    return this.put(`/plans/${planId}/adapt`);
+  }
+
+  /**
+   * Get athlete's active training plan
+   */
+  static async getActivePlan(athleteId: number): Promise<{ plan: unknown }> {
+    return this.get(`/plans/athlete/${athleteId}/active`);
+  }
+
+  /**
+   * Mark workout as completed
+   */
+  static async completeWorkout(workoutId: number): Promise<{ message: string; workout: unknown }> {
+    return this.put(`/plans/workout/${workoutId}/complete`);
+  }
 }
+

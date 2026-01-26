@@ -2,13 +2,15 @@
  * Profile view screen - shows athlete details and test history
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Alert,
+  TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -18,6 +20,7 @@ import {
   Loading,
   EmptyState,
   TestResultCard,
+  PlanWidget,
 } from '../components';
 import { useAthlete, useTestResults } from '../hooks';
 import {
@@ -25,15 +28,22 @@ import {
   formatDate,
   getInitials,
 } from '../utils';
-import { StorageService } from '../services';
+import { StorageService, ApiService } from '../services';
 import type { RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileView'>;
+
+type PlanDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'elite';
 
 export function ProfileViewScreen({ navigation, route }: Props) {
   const { athleteId } = route.params;
   const { athlete, loading: athleteLoading } = useAthlete(athleteId);
   const { results, loading: resultsLoading } = useTestResults(athleteId);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [planGenerating, setPlanGenerating] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<PlanDifficulty>('intermediate');
+  const [selectedDays, setSelectedDays] = useState<boolean[]>([true, true, true, true, true, false, false]); // Mon-Fri selected
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleStartTest = () => {
     navigation.navigate('TestSelect', { athleteId });
@@ -45,6 +55,47 @@ export function ProfileViewScreen({ navigation, route }: Props) {
 
   const handleViewResult = (resultId: string) => {
     navigation.navigate('TestResult', { resultId });
+  };
+
+  const handleGeneratePlan = async () => {
+    if (!athlete) return;
+
+    const daysPerWeek = selectedDays.filter(Boolean).length;
+    if (daysPerWeek === 0) {
+      Alert.alert('Invalid Selection', 'Please select at least one training day per week.');
+      return;
+    }
+
+    try {
+      setPlanGenerating(true);
+      
+      // Calculate weekly volume based on days selected (60-180 min)
+      const weeklyVolume = daysPerWeek * 30; // 30 min per day average
+      
+      await ApiService.generatePlan({
+        athleteId,
+        sport: athlete.sport || 'General Fitness',
+        difficulty: selectedDifficulty,
+        weeklyVolume,
+        userAvailability: selectedDays.map((selected, index) => 
+          selected ? ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][index] : null
+        ).filter(Boolean) as string[],
+      });
+
+      setShowPlanModal(false);
+      setRefreshKey(prev => prev + 1);
+      Alert.alert('Success', 'Training plan generated successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to generate training plan. Please try again.');
+    } finally {
+      setPlanGenerating(false);
+    }
+  };
+
+  const toggleDay = (index: number) => {
+    const newDays = [...selectedDays];
+    newDays[index] = !newDays[index];
+    setSelectedDays(newDays);
   };
 
   const handleDelete = () => {
@@ -88,6 +139,9 @@ export function ProfileViewScreen({ navigation, route }: Props) {
   const age = calculateAge(athlete.dateOfBirth);
   const initials = getInitials(athlete.firstName, athlete.lastName);
   const recentResults = results.slice(0, 3);
+
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const difficulties: PlanDifficulty[] = ['beginner', 'intermediate', 'advanced', 'elite'];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -143,6 +197,23 @@ export function ProfileViewScreen({ navigation, route }: Props) {
             style={styles.primaryButton}
             size="large"
           />
+          <Button
+            title="Generate Training Plan"
+            onPress={() => setShowPlanModal(true)}
+            variant="outline"
+            style={styles.secondaryButton}
+            size="large"
+          />
+        </View>
+
+        {/* Training Plan Widget */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Training Plan</Text>
+          <PlanWidget 
+            key={refreshKey}
+            athleteId={athleteId}
+            onPlanPress={() => {/* Navigate to plan details */}}
+          />
         </View>
 
         {/* Recent Results */}
@@ -186,6 +257,99 @@ export function ProfileViewScreen({ navigation, route }: Props) {
           style={styles.deleteButton}
         />
       </ScrollView>
+
+      {/* Plan Generation Modal */}
+      <Modal
+        visible={showPlanModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowPlanModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Generate Training Plan</Text>
+            
+            {/* Difficulty Selection */}
+            <View style={styles.modalSection}>
+              <Text style={styles.modalLabel}>Difficulty Level</Text>
+              <View style={styles.difficultyRow}>
+                {difficulties.map((difficulty) => (
+                  <TouchableOpacity
+                    key={difficulty}
+                    style={[
+                      styles.difficultyChip,
+                      selectedDifficulty === difficulty && styles.difficultyChipSelected,
+                    ]}
+                    onPress={() => setSelectedDifficulty(difficulty)}
+                  >
+                    <Text
+                      style={[
+                        styles.difficultyText,
+                        selectedDifficulty === difficulty && styles.difficultyTextSelected,
+                      ]}
+                    >
+                      {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Days Selection */}
+            <View style={styles.modalSection}>
+              <Text style={styles.modalLabel}>
+                Training Days ({selectedDays.filter(Boolean).length} days/week)
+              </Text>
+              <View style={styles.daysRow}>
+                {dayNames.map((day, index) => (
+                  <TouchableOpacity
+                    key={day}
+                    style={[
+                      styles.dayChip,
+                      selectedDays[index] && styles.dayChipSelected,
+                    ]}
+                    onPress={() => toggleDay(index)}
+                  >
+                    <Text
+                      style={[
+                        styles.dayText,
+                        selectedDays[index] && styles.dayTextSelected,
+                      ]}
+                    >
+                      {day}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Sport Info */}
+            {athlete && (
+              <View style={styles.modalSection}>
+                <Text style={styles.modalLabel}>Sport</Text>
+                <Text style={styles.sportText}>{athlete.sport || 'General Fitness'}</Text>
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            <View style={styles.modalActions}>
+              <Button
+                title="Cancel"
+                onPress={() => setShowPlanModal(false)}
+                variant="outline"
+                style={styles.modalButton}
+                disabled={planGenerating}
+              />
+              <Button
+                title={planGenerating ? "Generating..." : "Generate"}
+                onPress={handleGeneratePlan}
+                style={styles.modalButton}
+                disabled={planGenerating}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -268,8 +432,12 @@ const styles = StyleSheet.create({
   },
   actions: {
     marginTop: 16,
+    gap: 12,
   },
   primaryButton: {
+    width: '100%',
+  },
+  secondaryButton: {
     width: '100%',
   },
   section: {
@@ -295,4 +463,95 @@ const styles = StyleSheet.create({
   deleteButton: {
     marginTop: 32,
   },
-});
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  modalSection: {
+    marginBottom: 24,
+  },
+  modalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  difficultyRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  difficultyChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    backgroundColor: '#ffffff',
+  },
+  difficultyChipSelected: {
+    backgroundColor: '#3b82f6',
+    borderColor: '#3b82f6',
+  },
+  difficultyText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6b7280',
+  },
+  difficultyTextSelected: {
+    color: '#ffffff',
+  },
+  daysRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 6,
+  },
+  dayChip: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+  },
+  dayChipSelected: {
+    backgroundColor: '#3b82f6',
+    borderColor: '#3b82f6',
+  },
+  dayText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  dayTextSelected: {
+    color: '#ffffff',
+  },
+  sportText: {
+    fontSize: 16,
+    color: '#1f2937',
+    fontWeight: '500',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  modalButton: {
+    flex: 1,
+  },
