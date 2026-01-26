@@ -4,7 +4,23 @@ import sequelize from '../config/database';
 /**
  * Fitness Test Types
  */
-export type FitnessTestType = 'squats' | 'pushups' | 'jump' | 'situps' | 'pullups' | 'running';
+export type FitnessTestType =
+  | 'squats'
+  | 'pushups'
+  | 'jump'
+  | 'situps'
+  | 'pullups'
+  | 'running'
+  | 'plank'
+  | 'wall_sit'
+  | 'burpees'
+  | 'lunges'
+  | 'mountain_climbers'
+  | 'broad_jump'
+  | 'single_leg_balance'
+  | 'lateral_hops'
+  | 'hand_release_pushups'
+  | 'shuttle_run';
 
 /**
  * Grade Type
@@ -116,7 +132,24 @@ TestResult.init(
       onDelete: 'CASCADE',
     },
     testType: {
-      type: DataTypes.ENUM('squats', 'pushups', 'jump'),
+      type: DataTypes.ENUM(
+        'squats',
+        'pushups',
+        'jump',
+        'situps',
+        'pullups',
+        'running',
+        'plank',
+        'wall_sit',
+        'burpees',
+        'lunges',
+        'mountain_climbers',
+        'broad_jump',
+        'single_leg_balance',
+        'lateral_hops',
+        'hand_release_pushups',
+        'shuttle_run'
+      ),
       allowNull: false,
       field: 'test_type',
     },

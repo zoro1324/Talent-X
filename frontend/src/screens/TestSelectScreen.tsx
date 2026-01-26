@@ -17,7 +17,24 @@ import type { RootStackParamList, FitnessTestType } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TestSelect'>;
 
-const FITNESS_TESTS: FitnessTestType[] = ['squats', 'pushups', 'jump', 'situps', 'pullups', 'running'];
+const FITNESS_TESTS: FitnessTestType[] = [
+  'squats',
+  'pushups',
+  'jump',
+  'situps',
+  'pullups',
+  'running',
+  'plank',
+  'wall_sit',
+  'burpees',
+  'lunges',
+  'mountain_climbers',
+  'broad_jump',
+  'single_leg_balance',
+  'lateral_hops',
+  'hand_release_pushups',
+  'shuttle_run',
+];
 
 export function TestSelectScreen({ navigation, route }: Props) {
   const { athleteId } = route.params;

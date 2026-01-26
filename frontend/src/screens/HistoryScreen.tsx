@@ -217,7 +217,24 @@ export function HistoryScreen({ navigation, route }: Props) {
                       All
                     </Text>
                   </TouchableOpacity>
-                  {(['squats', 'pushups', 'jump', 'situps', 'pullups', 'running'] as FitnessTestType[]).map((test) => (
+                  {([
+                    'squats',
+                    'pushups',
+                    'jump',
+                    'situps',
+                    'pullups',
+                    'running',
+                    'plank',
+                    'wall_sit',
+                    'burpees',
+                    'lunges',
+                    'mountain_climbers',
+                    'broad_jump',
+                    'single_leg_balance',
+                    'lateral_hops',
+                    'hand_release_pushups',
+                    'shuttle_run',
+                  ] as FitnessTestType[]).map((test) => (
                     <TouchableOpacity
                       key={test}
                       style={[styles.filterChip, selectedTestType === test && styles.filterChipActive]}

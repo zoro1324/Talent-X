@@ -30,8 +30,25 @@ router.post(
       .isMongoId()
       .withMessage('Invalid athlete ID'),
     body('testType')
-      .isIn(['squats', 'pushups', 'jump'])
-      .withMessage('Test type must be squats, pushups, or jump'),
+      .isIn([
+        'squats',
+        'pushups',
+        'jump',
+        'situps',
+        'pullups',
+        'running',
+        'plank',
+        'wall_sit',
+        'burpees',
+        'lunges',
+        'mountain_climbers',
+        'broad_jump',
+        'single_leg_balance',
+        'lateral_hops',
+        'hand_release_pushups',
+        'shuttle_run',
+      ])
+      .withMessage('Invalid test type'),
     body('startedAt')
       .isISO8601()
       .withMessage('Valid start time is required'),
@@ -120,8 +137,25 @@ router.get(
       .withMessage('Invalid athlete ID'),
     query('testType')
       .optional()
-      .isIn(['squats', 'pushups', 'jump'])
-      .withMessage('Test type must be squats, pushups, or jump'),
+      .isIn([
+        'squats',
+        'pushups',
+        'jump',
+        'situps',
+        'pullups',
+        'running',
+        'plank',
+        'wall_sit',
+        'burpees',
+        'lunges',
+        'mountain_climbers',
+        'broad_jump',
+        'single_leg_balance',
+        'lateral_hops',
+        'hand_release_pushups',
+        'shuttle_run',
+      ])
+      .withMessage('Invalid test type'),
     query('startDate')
       .optional()
       .isISO8601()
@@ -159,8 +193,25 @@ router.get(
   apiLimiter,
   [
     param('testType')
-      .isIn(['squats', 'pushups', 'jump'])
-      .withMessage('Test type must be squats, pushups, or jump'),
+      .isIn([
+        'squats',
+        'pushups',
+        'jump',
+        'situps',
+        'pullups',
+        'running',
+        'plank',
+        'wall_sit',
+        'burpees',
+        'lunges',
+        'mountain_climbers',
+        'broad_jump',
+        'single_leg_balance',
+        'lateral_hops',
+        'hand_release_pushups',
+        'shuttle_run',
+      ])
+      .withMessage('Invalid test type'),
     query('limit')
       .optional()
       .isInt({ min: 1, max: 50 })
@@ -183,8 +234,25 @@ router.get(
       .withMessage('Invalid athlete ID'),
     query('testType')
       .optional()
-      .isIn(['squats', 'pushups', 'jump'])
-      .withMessage('Test type must be squats, pushups, or jump'),
+      .isIn([
+        'squats',
+        'pushups',
+        'jump',
+        'situps',
+        'pullups',
+        'running',
+        'plank',
+        'wall_sit',
+        'burpees',
+        'lunges',
+        'mountain_climbers',
+        'broad_jump',
+        'single_leg_balance',
+        'lateral_hops',
+        'hand_release_pushups',
+        'shuttle_run',
+      ])
+      .withMessage('Invalid test type'),
     query('limit')
       .optional()
       .isInt({ min: 1, max: 50 })

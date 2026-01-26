@@ -3,7 +3,23 @@
  */
 
 /** Supported fitness test types */
-export type FitnessTestType = 'squats' | 'pushups' | 'jump' | 'situps' | 'pullups' | 'running';
+export type FitnessTestType =
+  | 'squats'
+  | 'pushups'
+  | 'jump'
+  | 'situps'
+  | 'pullups'
+  | 'running'
+  | 'plank'
+  | 'wall_sit'
+  | 'burpees'
+  | 'lunges'
+  | 'mountain_climbers'
+  | 'broad_jump'
+  | 'single_leg_balance'
+  | 'lateral_hops'
+  | 'hand_release_pushups'
+  | 'shuttle_run';
 
 /** Body pose keypoint names for pose detection */
 export type KeypointName =
