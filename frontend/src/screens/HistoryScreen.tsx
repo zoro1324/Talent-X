@@ -75,10 +75,6 @@ export function HistoryScreen({ navigation, route }: Props) {
     }
   }, [showLeaderboard, selectedSport, selectedAgeGroup, selectedSchool, selectedTestType, loadLeaderboard]);
 
-  const handleViewResult = (resultId: string) => {
-    navigation.navigate('TestResult', { resultId });
-  };
-
   if (loading) {
     return <Loading message="Loading history..." />;
   }

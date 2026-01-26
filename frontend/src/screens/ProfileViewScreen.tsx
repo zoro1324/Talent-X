@@ -555,3 +555,4 @@ const styles = StyleSheet.create({
   modalButton: {
     flex: 1,
   },
+});
