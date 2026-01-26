@@ -27,7 +27,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       password,
       firstName,
       lastName,
-      isVerified: true,
     });
 
     // Generate tokens
@@ -43,7 +42,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          isVerified: user.isVerified,
         },
         token,
         refreshToken,
@@ -110,7 +108,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          isVerified: user.isVerified,
           lastLogin: user.lastLogin,
         },
         token,
@@ -136,7 +133,7 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId;
 
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'email', 'firstName', 'lastName', 'isVerified', 'createdAt', 'lastLogin'],
+      attributes: ['id', 'email', 'firstName', 'lastName', 'createdAt', 'lastLogin'],
     });
 
     if (!user) {
@@ -154,7 +151,6 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        isVerified: user.isVerified,
         createdAt: user.createdAt,
         lastLogin: user.lastLogin,
       },
@@ -276,17 +272,7 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Generate OTP for password reset
-    const otp = user.generateOTP();
-    await user.save();
-
-    // Send reset email
-    await sendOTPEmail({
-      to_email: user.email,
-      to_name: `${user.firstName} ${user.lastName}`,
-      otp_code: otp,
-    });
-
+    // Password reset functionality disabled
     res.status(200).json({
       success: true,
       message: 'If the email exists, a reset code has been sent.',
@@ -318,34 +304,8 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    if (!user.verificationOTP || !user.otpExpiry) {
-      res.status(400).json({
-        success: false,
-        message: 'No reset code found. Please request a new one.',
-      });
-      return;
-    }
-
-    if (new Date() > user.otpExpiry) {
-      res.status(400).json({
-        success: false,
-        message: 'Reset code has expired. Please request a new one.',
-      });
-      return;
-    }
-
-    if (user.verificationOTP !== otp) {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid reset code',
-      });
-      return;
-    }
-
     // Update password
     user.password = newPassword;
-    user.verificationOTP = null;
-    user.otpExpiry = null;
     await user.save();
 
     res.status(200).json({

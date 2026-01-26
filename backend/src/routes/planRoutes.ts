@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
 import {
   generatePlan,
   adaptPlan,
@@ -14,27 +14,27 @@ const router = express.Router();
  * @desc    Generate a new training plan for an athlete
  * @access  Private
  */
-router.post('/generate', authenticateToken, generatePlan);
+router.post('/generate', authenticate, generatePlan);
 
 /**
  * @route   PUT /api/plans/:planId/adapt
  * @desc    Adapt an existing plan based on recent performance
  * @access  Private
  */
-router.put('/:planId/adapt', authenticateToken, adaptPlan);
+router.put('/:planId/adapt', authenticate, adaptPlan);
 
 /**
  * @route   GET /api/plans/athlete/:athleteId/active
  * @desc    Get athlete's active training plan
  * @access  Private
  */
-router.get('/athlete/:athleteId/active', authenticateToken, getActivePlan);
+router.get('/athlete/:athleteId/active', authenticate, getActivePlan);
 
 /**
  * @route   PUT /api/plans/workout/:workoutId/complete
  * @desc    Mark a workout as completed
  * @access  Private
  */
-router.put('/workout/:workoutId/complete', authenticateToken, completeWorkout);
+router.put('/workout/:workoutId/complete', authenticate, completeWorkout);
 
 export default router;
