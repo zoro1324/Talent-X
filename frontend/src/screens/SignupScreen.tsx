@@ -253,33 +253,20 @@ export function SignupScreen({ navigation }: Props) {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || nameParts[0] || '';
 
-      // Call backend register API
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          password: password,
-          firstName: firstName,
-          lastName: lastName,
-        }),
+      // Call backend register API using ApiService
+      const ApiService = (await import('../services/ApiService')).default;
+      
+      const data = await ApiService.register({
+        email: email.trim().toLowerCase(),
+        password: password,
+        firstName: firstName,
+        lastName: lastName,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setErrors({
-          general: data.message || 'Registration failed. Please try again.',
-        });
-        return;
-      }
-
       // Store tokens if provided
-      if (data.data?.token) {
+      if (data.token) {
         // TODO: Store token in secure storage
-        // await StorageService.setItem('authToken', data.data.token);
+        // await StorageService.setItem('authToken', data.token);
       }
 
       // Show success message and navigate to login

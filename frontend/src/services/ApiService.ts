@@ -312,11 +312,19 @@ export class ApiService {
    * Register
    */
   static async register(data: {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
     password: string;
-  }): Promise<{ message: string }> {
-    return this.post<{ message: string }>('/auth/register', data);
+  }): Promise<{ token: string; refreshToken: string; user: any }> {
+    const response = await this.post<{ data: { token: string; refreshToken: string; user: any } }>('/auth/register', data);
+    
+    // Store token if provided
+    if (response.data?.token) {
+      await this.setToken(response.data.token);
+    }
+    
+    return response.data;
   }
 
   /**

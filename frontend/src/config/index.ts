@@ -8,8 +8,8 @@
 // - Windows: Open CMD and run 'ipconfig' - look for IPv4 Address
 // - Mac/Linux: Run 'ifconfig' or 'ip addr' in terminal
 
-const HOST_IP = '192.168.205.57'; // Your computer's local IP address
-const USE_EMULATOR = true; // Set to false when testing on physical device
+const HOST_IP = '192.168.1.6'; // Your computer's local IP address
+const USE_EMULATOR = false; // Set to false when testing on physical device
 
 export const API_CONFIG = {
   // Automatically uses 10.0.2.2 for emulator or your IP for physical device
