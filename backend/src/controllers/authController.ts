@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { User } from '../models';
 import { generateToken, generateRefreshToken, AuthRequest } from '../middleware/auth';
-import { sendOTPEmail } from '../services/emailService';
 
 /**
  * Register a new user
@@ -28,102 +27,16 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       password,
       firstName,
       lastName,
+      isVerified: true,
     });
-
-    // Generate OTP for verification
-    const otp = user.generateOTP();
-    await user.save();
-
-    // Send verification email
-    await sendOTPEmail({
-      to_email: user.email,
-      to_name: `${firstName} ${lastName}`,
-      otp_code: otp,
-    });
-
-    res.status(201).json({
-      success: true,
-      message: 'Registration successful. Please verify your email.',
-      data: {
-        userId: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Registration failed',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-};
-
-/**
- * Verify email with OTP
- * POST /api/auth/verify-otp
- */
-export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { email, otp } = req.body;
-
-    const user = await User.findOne({ where: { email: email.toLowerCase() } });
-
-    if (!user) {
-      res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-      return;
-    }
-
-    if (user.isVerified) {
-      res.status(400).json({
-        success: false,
-        message: 'Email is already verified',
-      });
-      return;
-    }
-
-    if (!user.verificationOTP || !user.otpExpiry) {
-      res.status(400).json({
-        success: false,
-        message: 'No OTP found. Please request a new one.',
-      });
-      return;
-    }
-
-    if (new Date() > user.otpExpiry) {
-      res.status(400).json({
-        success: false,
-        message: 'OTP has expired. Please request a new one.',
-      });
-      return;
-    }
-
-    if (user.verificationOTP !== otp) {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid OTP',
-      });
-      return;
-    }
-
-    // Mark as verified
-    user.isVerified = true;
-    user.verificationOTP = null;
-    user.otpExpiry = null;
-    await user.save();
 
     // Generate tokens
     const token = generateToken(user.id.toString(), user.email);
     const refreshToken = generateRefreshToken(user.id.toString());
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
-      message: 'Email verified successfully',
+      message: 'Registration successful.',
       data: {
         user: {
           id: user.id,
@@ -137,65 +50,18 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (error) {
-    console.error('OTP verification error:', error);
+    console.error('Registration error:', error);
     res.status(500).json({
       success: false,
-      message: 'Verification failed',
+      message: 'Registration failed',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 };
 
-/**
- * Resend OTP
- * POST /api/auth/resend-otp
- */
-export const resendOTP = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { email } = req.body;
 
-    const user = await User.findOne({ where: { email: email.toLowerCase() } });
 
-    if (!user) {
-      res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-      return;
-    }
 
-    if (user.isVerified) {
-      res.status(400).json({
-        success: false,
-        message: 'Email is already verified',
-      });
-      return;
-    }
-
-    // Generate new OTP
-    const otp = user.generateOTP();
-    await user.save();
-
-    // Send OTP email
-    await sendOTPEmail({
-      to_email: user.email,
-      to_name: `${user.firstName} ${user.lastName}`,
-      otp_code: otp,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: 'OTP sent successfully',
-    });
-  } catch (error) {
-    console.error('Resend OTP error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to resend OTP',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-};
 
 /**
  * Login user
@@ -223,27 +89,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       res.status(401).json({
         success: false,
         message: 'Invalid email or password',
-      });
-      return;
-    }
-
-    // Check if verified
-    if (!user.isVerified) {
-      // Generate new OTP
-      const otp = user.generateOTP();
-      await user.save();
-
-      // Send OTP
-      await sendOTPEmail({
-        to_email: user.email,
-        to_name: `${user.firstName} ${user.lastName}`,
-        otp_code: otp,
-      });
-
-      res.status(403).json({
-        success: false,
-        message: 'Email not verified. A new verification code has been sent.',
-        requiresVerification: true,
       });
       return;
     }

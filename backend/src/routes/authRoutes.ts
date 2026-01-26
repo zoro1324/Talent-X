@@ -3,8 +3,6 @@ import { body } from 'express-validator';
 import {
   register,
   login,
-  verifyOTP,
-  resendOTP,
   getMe,
   updateMe,
   changePassword,
@@ -66,43 +64,6 @@ router.post(
       .withMessage('Password is required'),
   ],
   login
-);
-
-/**
- * @route   POST /api/auth/verify-otp
- * @desc    Verify email with OTP
- * @access  Public
- */
-router.post(
-  '/verify-otp',
-  otpLimiter,
-  [
-    body('email')
-      .isEmail()
-      .normalizeEmail()
-      .withMessage('Valid email is required'),
-    body('otp')
-      .matches(/^\d{6}$/)
-      .withMessage('OTP must be a 6-digit number'),
-  ],
-  verifyOTP
-);
-
-/**
- * @route   POST /api/auth/resend-otp
- * @desc    Resend OTP to user
- * @access  Public
- */
-router.post(
-  '/resend-otp',
-  otpLimiter,
-  [
-    body('email')
-      .isEmail()
-      .normalizeEmail()
-      .withMessage('Valid email is required'),
-  ],
-  resendOTP
 );
 
 /**

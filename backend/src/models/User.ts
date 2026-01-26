@@ -11,9 +11,6 @@ export interface IUserAttributes {
   password: string;
   firstName: string;
   lastName: string;
-  isVerified: boolean;
-  verificationOTP: string | null;
-  otpExpiry: Date | null;
   resetPasswordToken: string | null;
   resetPasswordExpiry: Date | null;
   lastLogin: Date | null;
@@ -25,8 +22,7 @@ export interface IUserAttributes {
  * User Creation Attributes (optional fields for creation)
  */
 export interface IUserCreationAttributes extends Optional<IUserAttributes, 
-  'id' | 'isVerified' | 'verificationOTP' | 'otpExpiry' | 'resetPasswordToken' | 
-  'resetPasswordExpiry' | 'lastLogin' | 'createdAt' | 'updatedAt'> {}
+  'id' | 'resetPasswordToken' | 'resetPasswordExpiry' | 'lastLogin' | 'createdAt' | 'updatedAt'> {}
 
 /**
  * User Model Class
@@ -37,9 +33,6 @@ class User extends Model<IUserAttributes, IUserCreationAttributes> implements IU
   public password!: string;
   public firstName!: string;
   public lastName!: string;
-  public isVerified!: boolean;
-  public verificationOTP!: string | null;
-  public otpExpiry!: Date | null;
   public resetPasswordToken!: string | null;
   public resetPasswordExpiry!: Date | null;
   public lastLogin!: Date | null;
@@ -51,16 +44,6 @@ class User extends Model<IUserAttributes, IUserCreationAttributes> implements IU
    */
   async comparePassword(candidatePassword: string): Promise<boolean> {
     return bcrypt.compare(candidatePassword, this.password);
-  }
-
-  /**
-   * Generate 6-digit OTP
-   */
-  generateOTP(): string {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    this.verificationOTP = otp;
-    this.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-    return otp;
   }
 }
 
@@ -95,21 +78,6 @@ User.init(
       type: DataTypes.STRING(50),
       allowNull: false,
       field: 'last_name',
-    },
-    isVerified: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      field: 'is_verified',
-    },
-    verificationOTP: {
-      type: DataTypes.STRING(6),
-      allowNull: true,
-      field: 'verification_otp',
-    },
-    otpExpiry: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      field: 'otp_expiry',
     },
     resetPasswordToken: {
       type: DataTypes.STRING(255),
