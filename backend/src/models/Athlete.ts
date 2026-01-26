@@ -14,6 +14,8 @@ export interface IAthleteAttributes {
   height: number | null;
   weight: number | null;
   sport: string | null;
+  school: string | null;
+  club: string | null;
   profileImage: string | null;
   notes: string | null;
   isActive: boolean;
@@ -25,7 +27,7 @@ export interface IAthleteAttributes {
  * Athlete Creation Attributes
  */
 export interface IAthleteCreationAttributes extends Optional<IAthleteAttributes,
-  'id' | 'height' | 'weight' | 'sport' | 'profileImage' | 'notes' | 'isActive' | 'createdAt' | 'updatedAt'> {}
+  'id' | 'height' | 'weight' | 'sport' | 'school' | 'club' | 'profileImage' | 'notes' | 'isActive' | 'createdAt' | 'updatedAt'> {}
 
 /**
  * Athlete Model Class
@@ -40,6 +42,8 @@ class Athlete extends Model<IAthleteAttributes, IAthleteCreationAttributes> impl
   public height!: number | null;
   public weight!: number | null;
   public sport!: string | null;
+  public school!: string | null;
+  public club!: string | null;
   public profileImage!: string | null;
   public notes!: string | null;
   public isActive!: boolean;
@@ -128,6 +132,14 @@ Athlete.init(
     },
     sport: {
       type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    school: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    club: {
+      type: DataTypes.STRING(200),
       allowNull: true,
     },
     profileImage: {

@@ -3,7 +3,7 @@
  */
 
 /** Supported fitness test types */
-export type FitnessTestType = 'squats' | 'pushups' | 'jump';
+export type FitnessTestType = 'squats' | 'pushups' | 'jump' | 'situps' | 'pullups' | 'running';
 
 /** Body pose keypoint names for pose detection */
 export type KeypointName =
@@ -161,4 +161,12 @@ export interface NormativeData {
     p75: number;
     p90: number;
   };
+}
+
+/** Running test specific data */
+export interface RunningData {
+  distance: number; // meters
+  avgSpeed: number; // m/s
+  avgCadence: number; // steps per minute
+  totalSteps: number;
 }

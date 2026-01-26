@@ -3,7 +3,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { connectDB, syncDB, closeDB } from './config/database';
-import { emailRoutes, authRoutes, athleteRoutes, testResultRoutes, sportRoutes, dashboardRoutes } from './routes';
+import { emailRoutes, authRoutes, athleteRoutes, testResultRoutes, sportRoutes, dashboardRoutes, planRoutes } from './routes';
 import { apiLimiter } from './middleware';
 import { Sport } from './models';
 
@@ -453,6 +453,7 @@ app.use('/api/athletes', athleteRoutes);
 app.use('/api/tests', testResultRoutes);
 app.use('/api/sports', sportRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/plans', planRoutes);
 app.use('/api', emailRoutes);
 
 // Root endpoint

@@ -58,6 +58,36 @@ const NORMATIVE_DATA: NormativeData[] = [
   { testType: 'jump', gender: 'female', ageMin: 26, ageMax: 35, percentiles: { p10: 22, p25: 28, p50: 36, p75: 44, p90: 50 } },
   { testType: 'jump', gender: 'female', ageMin: 36, ageMax: 45, percentiles: { p10: 18, p25: 24, p50: 32, p75: 40, p90: 46 } },
   { testType: 'jump', gender: 'female', ageMin: 46, ageMax: 55, percentiles: { p10: 15, p25: 20, p50: 28, p75: 35, p90: 42 } },
+
+  // Sit-ups (60-second test) - reps per minute
+  { testType: 'situps', gender: 'male', ageMin: 18, ageMax: 25, percentiles: { p10: 25, p25: 32, p50: 42, p75: 50, p90: 60 } },
+  { testType: 'situps', gender: 'male', ageMin: 26, ageMax: 35, percentiles: { p10: 22, p25: 28, p50: 38, p75: 46, p90: 55 } },
+  { testType: 'situps', gender: 'male', ageMin: 36, ageMax: 45, percentiles: { p10: 18, p25: 24, p50: 32, p75: 40, p90: 48 } },
+  { testType: 'situps', gender: 'male', ageMin: 46, ageMax: 55, percentiles: { p10: 15, p25: 20, p50: 28, p75: 35, p90: 42 } },
+  { testType: 'situps', gender: 'female', ageMin: 18, ageMax: 25, percentiles: { p10: 20, p25: 28, p50: 38, p75: 46, p90: 55 } },
+  { testType: 'situps', gender: 'female', ageMin: 26, ageMax: 35, percentiles: { p10: 18, p25: 24, p50: 34, p75: 42, p90: 50 } },
+  { testType: 'situps', gender: 'female', ageMin: 36, ageMax: 45, percentiles: { p10: 15, p25: 20, p50: 28, p75: 36, p90: 44 } },
+  { testType: 'situps', gender: 'female', ageMin: 46, ageMax: 55, percentiles: { p10: 12, p25: 17, p50: 24, p75: 32, p90: 40 } },
+
+  // Pull-ups (continuous test) - total reps
+  { testType: 'pullups', gender: 'male', ageMin: 18, ageMax: 25, percentiles: { p10: 3, p25: 6, p50: 10, p75: 15, p90: 20 } },
+  { testType: 'pullups', gender: 'male', ageMin: 26, ageMax: 35, percentiles: { p10: 2, p25: 5, p50: 8, p75: 12, p90: 17 } },
+  { testType: 'pullups', gender: 'male', ageMin: 36, ageMax: 45, percentiles: { p10: 1, p25: 3, p50: 6, p75: 10, p90: 14 } },
+  { testType: 'pullups', gender: 'male', ageMin: 46, ageMax: 55, percentiles: { p10: 1, p25: 2, p50: 4, p75: 7, p90: 11 } },
+  { testType: 'pullups', gender: 'female', ageMin: 18, ageMax: 25, percentiles: { p10: 1, p25: 2, p50: 4, p75: 7, p90: 11 } },
+  { testType: 'pullups', gender: 'female', ageMin: 26, ageMax: 35, percentiles: { p10: 0, p25: 1, p50: 3, p75: 5, p90: 8 } },
+  { testType: 'pullups', gender: 'female', ageMin: 36, ageMax: 45, percentiles: { p10: 0, p25: 1, p50: 2, p75: 4, p90: 6 } },
+  { testType: 'pullups', gender: 'female', ageMin: 46, ageMax: 55, percentiles: { p10: 0, p25: 0, p50: 1, p75: 3, p90: 5 } },
+
+  // Running Speed (30-second test) - distance in meters
+  { testType: 'running', gender: 'male', ageMin: 18, ageMax: 25, percentiles: { p10: 60, p25: 75, p50: 90, p75: 105, p90: 120 } },
+  { testType: 'running', gender: 'male', ageMin: 26, ageMax: 35, percentiles: { p10: 55, p25: 70, p50: 85, p75: 100, p90: 115 } },
+  { testType: 'running', gender: 'male', ageMin: 36, ageMax: 45, percentiles: { p10: 50, p25: 65, p50: 80, p75: 95, p90: 110 } },
+  { testType: 'running', gender: 'male', ageMin: 46, ageMax: 55, percentiles: { p10: 45, p25: 60, p50: 75, p75: 90, p90: 105 } },
+  { testType: 'running', gender: 'female', ageMin: 18, ageMax: 25, percentiles: { p10: 50, p25: 65, p50: 80, p75: 95, p90: 110 } },
+  { testType: 'running', gender: 'female', ageMin: 26, ageMax: 35, percentiles: { p10: 45, p25: 60, p50: 75, p75: 90, p90: 105 } },
+  { testType: 'running', gender: 'female', ageMin: 36, ageMax: 45, percentiles: { p10: 40, p25: 55, p50: 70, p75: 85, p90: 100 } },
+  { testType: 'running', gender: 'female', ageMin: 46, ageMax: 55, percentiles: { p10: 35, p25: 50, p50: 65, p75: 80, p90: 95 } },
 ];
 
 /**
@@ -173,6 +203,22 @@ function generateFeedback(
     case 'jump':
       feedback.push('Tip: use arm swing to generate more power.');
       feedback.push('Focus on explosive hip extension for maximum height.');
+      break;
+    case 'situps':
+      if (rawScore < 25) {
+        feedback.push('Focus on core engagement and controlled movements.');
+      }
+      feedback.push('Tip: keep your back flat and avoid pulling on your neck.');
+      break;
+    case 'pullups':
+      if (rawScore < 3) {
+        feedback.push('Consider assisted pull-ups or negatives to build strength.');
+      }
+      feedback.push('Tip: engage your back muscles and avoid swinging.');
+      break;
+    case 'running':
+      feedback.push('Tip: maintain a consistent cadence for better efficiency.');
+      feedback.push('Focus on quick, light foot contacts with the ground.');
       break;
   }
 
@@ -315,6 +361,48 @@ export class ScoringService {
           ],
           duration: 30,
           metric: 'height (cm)',
+        };
+      case 'situps':
+        return {
+          name: 'Sit-Ups',
+          description: 'Tests core strength and abdominal endurance',
+          instructions: [
+            'Lie on your back with knees bent and feet flat',
+            'Place hands behind your head or across chest',
+            'Lift your torso up toward your knees',
+            'Lower back down with control',
+            'Repeat as many times as possible in 60 seconds',
+          ],
+          duration: 60,
+          metric: 'repetitions',
+        };
+      case 'pullups':
+        return {
+          name: 'Pull-Ups',
+          description: 'Tests upper body pulling strength',
+          instructions: [
+            'Hang from a bar with palms facing away, arms fully extended',
+            'Pull your body up until chin is above the bar',
+            'Lower back down to full arm extension',
+            'Avoid swinging or kipping',
+            'Perform as many repetitions as possible',
+          ],
+          duration: 120, // 2 minutes max
+          metric: 'repetitions',
+        };
+      case 'running':
+        return {
+          name: 'Running Speed Test',
+          description: 'Tests running speed and cardiovascular endurance',
+          instructions: [
+            'Stand in front of the camera in a well-lit area',
+            'Run in place when the test begins',
+            'Lift knees high and maintain a steady pace',
+            'The app will track your cadence and estimate speed',
+            'Continue for the full 30 seconds',
+          ],
+          duration: 30,
+          metric: 'distance (m)',
         };
     }
   }

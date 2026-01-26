@@ -4,7 +4,7 @@ import sequelize from '../config/database';
 /**
  * Fitness Test Types
  */
-export type FitnessTestType = 'squats' | 'pushups' | 'jump';
+export type FitnessTestType = 'squats' | 'pushups' | 'jump' | 'situps' | 'pullups' | 'running';
 
 /**
  * Grade Type
