@@ -166,6 +166,19 @@ export function getTestDisplayName(testType: string): string {
     squats: 'Squats',
     pushups: 'Push-Ups',
     jump: 'Vertical Jump',
+    situps: 'Sit-Ups',
+    pullups: 'Pull-Ups',
+    running: 'Running Speed',
+    plank: 'Plank Hold',
+    wall_sit: 'Wall Sit',
+    burpees: 'Burpees',
+    lunges: 'Lunges',
+    mountain_climbers: 'Mountain Climbers',
+    broad_jump: 'Broad Jump',
+    single_leg_balance: 'Single-Leg Balance',
+    lateral_hops: 'Lateral Hops',
+    hand_release_pushups: 'Hand-Release Push-Ups',
+    shuttle_run: '20m Shuttle Run',
   };
   return names[testType] || testType;
 }
@@ -178,6 +191,19 @@ export function getTestIcon(testType: string): string {
     squats: '🏋️',
     pushups: '💪',
     jump: '🦘',
+    situps: '🧘',
+    pullups: '🏋️',
+    running: '🏃',
+    plank: '🧘',
+    wall_sit: '🪑',
+    burpees: '🤸',
+    lunges: '🦵',
+    mountain_climbers: '⛰️',
+    broad_jump: '↗️',
+    single_leg_balance: '🦶',
+    lateral_hops: '↔️',
+    hand_release_pushups: '💪',
+    shuttle_run: '🏃‍♂️',
   };
   return icons[testType] || '🏃';
 }

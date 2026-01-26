@@ -88,6 +88,46 @@ const NORMATIVE_DATA: NormativeData[] = [
   { testType: 'running', gender: 'female', ageMin: 26, ageMax: 35, percentiles: { p10: 45, p25: 60, p50: 75, p75: 90, p90: 105 } },
   { testType: 'running', gender: 'female', ageMin: 36, ageMax: 45, percentiles: { p10: 40, p25: 55, p50: 70, p75: 85, p90: 100 } },
   { testType: 'running', gender: 'female', ageMin: 46, ageMax: 55, percentiles: { p10: 35, p25: 50, p50: 65, p75: 80, p90: 95 } },
+
+  // Plank Hold (seconds)
+  { testType: 'plank', gender: 'male', ageMin: 18, ageMax: 55, percentiles: { p10: 30, p25: 45, p50: 60, p75: 90, p90: 120 } },
+  { testType: 'plank', gender: 'female', ageMin: 18, ageMax: 55, percentiles: { p10: 25, p25: 40, p50: 55, p75: 80, p90: 100 } },
+
+  // Wall Sit (seconds)
+  { testType: 'wall_sit', gender: 'male', ageMin: 18, ageMax: 55, percentiles: { p10: 30, p25: 45, p50: 60, p75: 90, p90: 120 } },
+  { testType: 'wall_sit', gender: 'female', ageMin: 18, ageMax: 55, percentiles: { p10: 25, p25: 40, p50: 55, p75: 80, p90: 100 } },
+
+  // Burpees (60-second test) - reps
+  { testType: 'burpees', gender: 'male', ageMin: 18, ageMax: 55, percentiles: { p10: 10, p25: 14, p50: 18, p75: 24, p90: 30 } },
+  { testType: 'burpees', gender: 'female', ageMin: 18, ageMax: 55, percentiles: { p10: 8, p25: 12, p50: 16, p75: 22, p90: 28 } },
+
+  // Alternating Lunges (60-second test) - reps
+  { testType: 'lunges', gender: 'male', ageMin: 18, ageMax: 55, percentiles: { p10: 16, p25: 20, p50: 26, p75: 32, p90: 38 } },
+  { testType: 'lunges', gender: 'female', ageMin: 18, ageMax: 55, percentiles: { p10: 14, p25: 18, p50: 24, p75: 30, p90: 36 } },
+
+  // Mountain Climbers (60-second test) - reps
+  { testType: 'mountain_climbers', gender: 'male', ageMin: 18, ageMax: 55, percentiles: { p10: 30, p25: 40, p50: 50, p75: 60, p90: 70 } },
+  { testType: 'mountain_climbers', gender: 'female', ageMin: 18, ageMax: 55, percentiles: { p10: 28, p25: 36, p50: 46, p75: 56, p90: 66 } },
+
+  // Broad Jump (centimeters)
+  { testType: 'broad_jump', gender: 'male', ageMin: 18, ageMax: 55, percentiles: { p10: 160, p25: 190, p50: 220, p75: 250, p90: 280 } },
+  { testType: 'broad_jump', gender: 'female', ageMin: 18, ageMax: 55, percentiles: { p10: 140, p25: 170, p50: 200, p75: 230, p90: 260 } },
+
+  // Single-Leg Balance (seconds)
+  { testType: 'single_leg_balance', gender: 'male', ageMin: 18, ageMax: 55, percentiles: { p10: 20, p25: 30, p50: 40, p75: 55, p90: 70 } },
+  { testType: 'single_leg_balance', gender: 'female', ageMin: 18, ageMax: 55, percentiles: { p10: 18, p25: 28, p50: 38, p75: 50, p90: 65 } },
+
+  // Lateral Hops (30-second test) - reps
+  { testType: 'lateral_hops', gender: 'male', ageMin: 18, ageMax: 55, percentiles: { p10: 20, p25: 28, p50: 36, p75: 44, p90: 52 } },
+  { testType: 'lateral_hops', gender: 'female', ageMin: 18, ageMax: 55, percentiles: { p10: 18, p25: 26, p50: 34, p75: 42, p90: 50 } },
+
+  // Hand-Release Push-Ups (60-second test) - reps
+  { testType: 'hand_release_pushups', gender: 'male', ageMin: 18, ageMax: 55, percentiles: { p10: 12, p25: 18, p50: 25, p75: 32, p90: 40 } },
+  { testType: 'hand_release_pushups', gender: 'female', ageMin: 18, ageMax: 55, percentiles: { p10: 8, p25: 12, p50: 18, p75: 24, p90: 30 } },
+
+  // 20m Shuttle Run (shuttles completed)
+  { testType: 'shuttle_run', gender: 'male', ageMin: 18, ageMax: 55, percentiles: { p10: 10, p25: 14, p50: 18, p75: 22, p90: 26 } },
+  { testType: 'shuttle_run', gender: 'female', ageMin: 18, ageMax: 55, percentiles: { p10: 8, p25: 12, p50: 16, p75: 20, p90: 24 } },
 ];
 
 /**
@@ -219,6 +259,46 @@ function generateFeedback(
     case 'running':
       feedback.push('Tip: maintain a consistent cadence for better efficiency.');
       feedback.push('Focus on quick, light foot contacts with the ground.');
+      break;
+    case 'plank':
+      feedback.push('Keep glutes and core tight; avoid sagging hips.');
+      feedback.push('Think long spine and steady breathing to extend your hold.');
+      break;
+    case 'wall_sit':
+      feedback.push('Press your lower back into the wall and keep knees at 90°.');
+      feedback.push('Distribute weight through heels to stay stable.');
+      break;
+    case 'burpees':
+      feedback.push('Stay smooth through the transition to keep reps consistent.');
+      feedback.push('Land softly and brace your core before each jump.');
+      break;
+    case 'lunges':
+      feedback.push('Keep front knee tracking over the middle of the foot.');
+      feedback.push('Drive through the front heel and stay tall through the torso.');
+      break;
+    case 'mountain_climbers':
+      feedback.push('Maintain a solid plank; minimize hip bounce.');
+      feedback.push('Pull knees toward chest quickly while keeping shoulders stacked.');
+      break;
+    case 'broad_jump':
+      feedback.push('Load hips back and swing arms aggressively for distance.');
+      feedback.push('Stick the landing softly with knees bent and balanced.');
+      break;
+    case 'single_leg_balance':
+      feedback.push('Focus on a fixed point to improve stability.');
+      feedback.push('Engage glutes and keep hips level to reduce wobble.');
+      break;
+    case 'lateral_hops':
+      feedback.push('Stay on the balls of your feet and keep hops quick and light.');
+      feedback.push('Use arms for balance and control side-to-side drift.');
+      break;
+    case 'hand_release_pushups':
+      feedback.push('Lock in a tight plank and avoid low back sag.');
+      feedback.push('Release hands briefly each rep to standardize range of motion.');
+      break;
+    case 'shuttle_run':
+      feedback.push('Turn low and drive off the outside foot to accelerate faster.');
+      feedback.push('Control breathing and pace early to finish strong.');
       break;
   }
 
@@ -403,6 +483,146 @@ export class ScoringService {
           ],
           duration: 30,
           metric: 'distance (m)',
+        };
+      case 'plank':
+        return {
+          name: 'Plank Hold',
+          description: 'Tests core endurance and anti-extension strength',
+          instructions: [
+            'Set up in a forearm plank with elbows under shoulders',
+            'Keep body in a straight line from head to heels',
+            'Squeeze glutes and brace your core',
+            'Breathe steadily and hold as long as possible',
+            'Stop if hips sag or form breaks',
+          ],
+          duration: 120,
+          metric: 'time (s)',
+        };
+      case 'wall_sit':
+        return {
+          name: 'Wall Sit Hold',
+          description: 'Tests lower-body isometric endurance',
+          instructions: [
+            'Slide down a wall until knees are ~90°',
+            'Keep back flat against the wall and feet shoulder-width',
+            'Hold the position without using hands on thighs',
+            'Maintain steady breathing and avoid knee collapse inward',
+            'Hold as long as possible',
+          ],
+          duration: 120,
+          metric: 'time (s)',
+        };
+      case 'burpees':
+        return {
+          name: 'Burpees (60s)',
+          description: 'Tests full-body power and conditioning',
+          instructions: [
+            'Start standing, drop to plank, chest touches the floor',
+            'Return feet forward, jump and clap overhead',
+            'Keep a steady rhythm for the full minute',
+            'Land softly and brace your core each rep',
+            'Count total completed burpees',
+          ],
+          duration: 60,
+          metric: 'repetitions',
+        };
+      case 'lunges':
+        return {
+          name: 'Alternating Lunges (60s)',
+          description: 'Tests unilateral leg strength and stability',
+          instructions: [
+            'Step forward into a lunge, back knee toward the ground',
+            'Front knee tracks over mid-foot, torso tall',
+            'Push back to stand and switch legs each rep',
+            'Maintain balance and even stride length',
+            'Count total alternating reps in 60 seconds',
+          ],
+          duration: 60,
+          metric: 'repetitions',
+        };
+      case 'mountain_climbers':
+        return {
+          name: 'Mountain Climbers (60s)',
+          description: 'Tests core stability and shoulder endurance with cardio',
+          instructions: [
+            'Start in a high plank with shoulders over wrists',
+            'Drive one knee toward chest, then switch rapidly',
+            'Keep hips level and core braced',
+            'Maintain quick, controlled steps for 60 seconds',
+            'Count total knee drives',
+          ],
+          duration: 60,
+          metric: 'repetitions',
+        };
+      case 'broad_jump':
+        return {
+          name: 'Broad Jump',
+          description: 'Tests horizontal power of the lower body',
+          instructions: [
+            'Start behind a line with feet hip-width',
+            'Load hips back and swing arms, then jump forward explosively',
+            'Land softly with knees bent and balanced',
+            'Measure best distance from start line to heel closest to start',
+            'Perform 3-5 attempts; best distance counts',
+          ],
+          duration: 45,
+          metric: 'distance (cm)',
+        };
+      case 'single_leg_balance':
+        return {
+          name: 'Single-Leg Balance',
+          description: 'Tests balance and stability on each leg',
+          instructions: [
+            'Stand on one leg with soft knee',
+            'Keep hips level and eyes on a fixed point',
+            'Hold as long as possible without touching down',
+            'Repeat on both legs; best time counts',
+            'Stop if hopping or excessive wobble occurs',
+          ],
+          duration: 60,
+          metric: 'time (s)',
+        };
+      case 'lateral_hops':
+        return {
+          name: 'Lateral Hops (30s)',
+          description: 'Tests frontal-plane power and foot speed',
+          instructions: [
+            'Stand beside a line/object and hop side-to-side over it',
+            'Keep hops quick and light on the balls of your feet',
+            'Use arms for balance and maintain hip level',
+            'Count total hops in 30 seconds',
+            'Aim for consistent rhythm without long pauses',
+          ],
+          duration: 30,
+          metric: 'repetitions',
+        };
+      case 'hand_release_pushups':
+        return {
+          name: 'Hand-Release Push-Ups (60s)',
+          description: 'Tests upper-body pushing endurance with full ROM',
+          instructions: [
+            'From a plank, lower chest to floor, lift hands briefly',
+            'Place hands back, press to full lockout',
+            'Keep body in a straight line throughout',
+            'Repeat for max reps in 60 seconds',
+            'Avoid hip sag or worming up',
+          ],
+          duration: 60,
+          metric: 'repetitions',
+        };
+      case 'shuttle_run':
+        return {
+          name: '20m Shuttle Run',
+          description: 'Tests aerobic capacity and change-of-direction speed',
+          instructions: [
+            'Set two markers 20m apart',
+            'Run to the far line, touch/turn, and return',
+            'Maintain pacing; shuttles completed are counted',
+            'Use smooth, low turns to conserve speed',
+            'Stop if you cannot make the distance safely',
+          ],
+          duration: 180,
+          metric: 'shuttles',
         };
     }
   }

@@ -332,10 +332,27 @@ export const getLeaderboard = async (req: AuthRequest, res: Response): Promise<v
     const { testType } = req.params;
     const { limit = 10 } = req.query;
 
-    if (!['squats', 'pushups', 'jump'].includes(testType)) {
+    if (![
+      'squats',
+      'pushups',
+      'jump',
+      'situps',
+      'pullups',
+      'running',
+      'plank',
+      'wall_sit',
+      'burpees',
+      'lunges',
+      'mountain_climbers',
+      'broad_jump',
+      'single_leg_balance',
+      'lateral_hops',
+      'hand_release_pushups',
+      'shuttle_run',
+    ].includes(testType)) {
       res.status(400).json({
         success: false,
-        message: 'Invalid test type. Must be squats, pushups, or jump.',
+        message: 'Invalid test type.',
       });
       return;
     }
