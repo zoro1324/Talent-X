@@ -328,20 +328,6 @@ export class ApiService {
   }
 
   /**
-   * Verify OTP
-   */
-  static async verifyOTP(email: string, otp: string): Promise<{ token: string; user: unknown }> {
-    const response = await this.post<{ token: string; user: unknown }>('/auth/verify-otp', {
-      email,
-      otp,
-    });
-    if (response.token) {
-      await this.setToken(response.token);
-    }
-    return response;
-  }
-
-  /**
    * Get current user
    */
   static async getCurrentUser(): Promise<unknown> {

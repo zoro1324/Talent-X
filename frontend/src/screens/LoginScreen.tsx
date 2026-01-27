@@ -1,5 +1,5 @@
 /**
- * Login Screen - Professional user authentication with email verification
+ * Login Screen - Professional user authentication
  */
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -12,7 +12,6 @@ import {
   Platform,
   ScrollView,
   TextInput as RNTextInput,
-  Modal,
   Animated,
   Linking,
   Alert,
@@ -25,12 +24,10 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 // @ts-ignore - @expo/vector-icons is bundled with Expo
 import { Ionicons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { RootStackParamList } from '../types';
-import { generateOTP, sendOTPEmail } from '../services/EmailService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-const OTP_BOX_SIZE = Math.min(48, (screenWidth - 100) / 6);
 
 export function LoginScreen({ navigation }: Props) {
   // Form state
@@ -40,20 +37,11 @@ export function LoginScreen({ navigation }: Props) {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // OTP Verification state
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [generatedOtp, setGeneratedOtp] = useState('');
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [resendTimer, setResendTimer] = useState(0);
-  const otpInputRefs = useRef<(RNTextInput | null)[]>([]);
-
   // Validation errors
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
     general?: string;
-    otp?: string;
   }>({});
 
   // Animation refs
@@ -105,21 +93,7 @@ export function LoginScreen({ navigation }: Props) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Start resend timer
-  const startResendTimer = () => {
-    setResendTimer(60);
-    const interval = setInterval(() => {
-      setResendTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
-  // Handle login submission - sends OTP
+  // Handle login submission
   const handleLogin = async () => {
     if (!validateForm()) return;
 
@@ -127,160 +101,29 @@ export function LoginScreen({ navigation }: Props) {
     setErrors({});
 
     try {
-      // Generate new OTP
-      const newOtp = generateOTP();
-      setGeneratedOtp(newOtp);
+      // Call backend login API
+      const { ApiService } = await import('../services/ApiService');
+      const response = await ApiService.login({
+        email: email.trim().toLowerCase(),
+        password,
+      });
 
-      // Send OTP to email using EmailService
-      const result = await sendOTPEmail(email.trim(), newOtp);
-      
-      if (result.otpForDemo) {
-        // EmailJS not configured or failed - show OTP for demo/testing
-        Alert.alert(
-          '📧 Verification Code',
-          `Your OTP is: ${result.otpForDemo}\n\n(Configure EmailJS in src/services/EmailService.ts to receive real emails)`,
-          [{ text: 'OK' }]
-        );
-      } else if (result.success) {
-        Alert.alert(
-          '✅ Email Sent',
-          `Verification code sent to ${email}`,
-          [{ text: 'OK' }]
-        );
+      if (response?.token) {
+        // Navigate to home screen
+        navigation.replace('Home');
       }
-
-      // Show OTP modal
-      setShowOtpModal(true);
-      startResendTimer();
-      
-      // Animate modal
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-
     } catch (error) {
       setErrors({
-        general: 'Failed to send verification code. Please try again.',
+        general: 'Failed to log in. Please check your credentials and try again.',
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle OTP input
-  const handleOtpChange = (value: string, index: number) => {
-    if (value.length > 1) {
-      value = value.slice(-1);
-    }
-
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    // Clear OTP error
-    if (errors.otp) {
-      setErrors((prev) => ({ ...prev, otp: undefined }));
-    }
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      otpInputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  // Handle OTP backspace
-  const handleOtpKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
-      otpInputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  // Verify OTP
-  const handleVerifyOtp = async () => {
-    const otpValue = otp.join('');
-    
-    if (otpValue.length !== 6) {
-      setErrors({ otp: 'Please enter the complete 6-digit code' });
-      return;
-    }
-
-    setOtpLoading(true);
-    setErrors({});
-
-    try {
-      // Simulate verification delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Verify OTP matches the generated one
-      if (otpValue === generatedOtp) {
-        // Close modal and navigate
-        setShowOtpModal(false);
-        setGeneratedOtp('');
-        navigation.replace('Home');
-      } else {
-        setErrors({ otp: 'Invalid verification code. Please try again.' });
-      }
-    } catch (error) {
-      setErrors({ otp: 'Verification failed. Please try again.' });
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
-  // Resend OTP
-  const handleResendOtp = async () => {
-    if (resendTimer > 0) return;
-
-    setOtpLoading(true);
-    try {
-      // Generate new OTP
-      const newOtp = generateOTP();
-      setGeneratedOtp(newOtp);
-
-      // Send new OTP to email using EmailService
-      const result = await sendOTPEmail(email.trim(), newOtp);
-      
-      if (result.otpForDemo) {
-        Alert.alert(
-          '📧 New Verification Code',
-          `Your new OTP is: ${result.otpForDemo}`,
-          [{ text: 'OK' }]
-        );
-      } else if (result.success) {
-        Alert.alert(
-          '✅ Email Sent',
-          `New verification code sent to ${email}`,
-          [{ text: 'OK' }]
-        );
-      }
-
-      setOtp(['', '', '', '', '', '']);
-      startResendTimer();
-      otpInputRefs.current[0]?.focus();
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
-  // Close OTP modal
-  const closeOtpModal = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      setShowOtpModal(false);
-      setOtp(['', '', '', '', '', '']);
-    });
-  };
-
   // Handle forgot password
   const handleForgotPassword = () => {
-    setErrors({
-      general: 'Password reset link has been sent to your email.',
-    });
+    navigation.navigate('Register');
   };
 
   // Handle registration navigation
@@ -607,95 +450,6 @@ export function LoginScreen({ navigation }: Props) {
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* OTP Verification Modal */}
-      <Modal
-        visible={showOtpModal}
-        transparent
-        animationType="none"
-        onRequestClose={closeOtpModal}
-      >
-        <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
-          <View style={styles.modalContent}>
-            {/* Close Button */}
-            <TouchableOpacity style={styles.modalCloseButton} onPress={closeOtpModal}>
-              <Ionicons name="close" size={24} color="#6b7280" />
-            </TouchableOpacity>
-
-            {/* Modal Header */}
-            <View style={styles.modalHeader}>
-              <View style={styles.otpIconContainer}>
-                <Ionicons name="mail-open-outline" size={32} color="#3b82f6" />
-              </View>
-              <Text style={styles.modalTitle}>Verify Your Email</Text>
-              <Text style={styles.modalSubtitle}>
-                We've sent a 6-digit verification code to
-              </Text>
-              <Text style={styles.modalEmail}>{email}</Text>
-            </View>
-
-            {/* OTP Input */}
-            <View style={styles.otpContainer}>
-              {otp.map((digit, index) => (
-                <RNTextInput
-                  key={index}
-                  ref={(ref) => {
-                    otpInputRefs.current[index] = ref;
-                  }}
-                  style={[
-                    styles.otpInput,
-                    digit && styles.otpInputFilled,
-                    errors.otp && styles.otpInputError,
-                  ]}
-                  value={digit}
-                  onChangeText={(value) => handleOtpChange(value, index)}
-                  onKeyPress={(e) => handleOtpKeyPress(e, index)}
-                  keyboardType="number-pad"
-                  maxLength={1}
-                  selectTextOnFocus
-                />
-              ))}
-            </View>
-
-            {/* OTP Error */}
-            {errors.otp && (
-              <View style={styles.otpErrorContainer}>
-                <Ionicons name="alert-circle" size={16} color="#ef4444" />
-                <Text style={styles.otpErrorText}>{errors.otp}</Text>
-              </View>
-            )}
-
-            {/* Verify Button */}
-            <TouchableOpacity
-              style={[styles.verifyButton, otpLoading && styles.verifyButtonDisabled]}
-              onPress={handleVerifyOtp}
-              disabled={otpLoading}
-              activeOpacity={0.8}
-            >
-              {otpLoading ? (
-                <View style={styles.loadingContainer}>
-                  <Ionicons name="sync" size={20} color="#ffffff" />
-                  <Text style={styles.verifyButtonText}>Verifying...</Text>
-                </View>
-              ) : (
-                <Text style={styles.verifyButtonText}>Verify & Continue</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Resend OTP */}
-            <View style={styles.resendContainer}>
-              <Text style={styles.resendText}>Didn't receive the code? </Text>
-              {resendTimer > 0 ? (
-                <Text style={styles.resendTimer}>Resend in {resendTimer}s</Text>
-              ) : (
-                <TouchableOpacity onPress={handleResendOtp} disabled={otpLoading}>
-                  <Text style={styles.resendLink}>Resend Code</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </Animated.View>
-      </Modal>
     </SafeAreaView>
   );
 }
