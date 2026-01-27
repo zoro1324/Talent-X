@@ -254,7 +254,7 @@ export function SignupScreen({ navigation }: Props) {
       const lastName = nameParts.slice(1).join(' ') || nameParts[0] || '';
 
       // Call backend register API using ApiService
-      const ApiService = (await import('../services/ApiService')).default;
+      const { ApiService } = await import('../services/ApiService');
       
       const data = await ApiService.register({
         email: email.trim().toLowerCase(),
