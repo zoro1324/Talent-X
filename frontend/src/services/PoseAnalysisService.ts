@@ -27,13 +27,13 @@ const MIN_CONFIDENCE = 0.3;
 /** Angle thresholds for exercise detection */
 const EXERCISE_THRESHOLDS = {
   squats: {
-    standingKneeAngle: 160, // Standing position
-    squatKneeAngle: 90, // Deep squat
+    standingKneeAngle: 155, // Standing position (more lenient)
+    squatKneeAngle: 100, // Deep squat (more lenient for partial squats)
     hipAngleThreshold: 100, // Hip bent threshold
   },
   pushups: {
-    upElbowAngle: 160, // Arms extended
-    downElbowAngle: 90, // Arms bent
+    upElbowAngle: 155, // Arms extended (more lenient)
+    downElbowAngle: 100, // Arms bent (more lenient)
     bodyAlignmentTolerance: 20, // Degrees deviation allowed
   },
   jump: {
@@ -151,8 +151,8 @@ export class PoseAnalysisService {
       hipAngle = calculateAngle(rightShoulder, rightHip, rightKnee);
     }
 
-    const isSquatPosition = kneeAngle <= EXERCISE_THRESHOLDS.squats.squatKneeAngle + 15;
-    const isStandingPosition = kneeAngle >= EXERCISE_THRESHOLDS.squats.standingKneeAngle - 10;
+    const isSquatPosition = kneeAngle <= EXERCISE_THRESHOLDS.squats.squatKneeAngle + 20;
+    const isStandingPosition = kneeAngle >= EXERCISE_THRESHOLDS.squats.standingKneeAngle - 15;
 
     // Check form issues
     if (leftKnee && leftAnkle && leftKnee.x < leftAnkle.x - 30) {
@@ -210,8 +210,8 @@ export class PoseAnalysisService {
       bodyAlignment = calculateAngle(leftShoulder, leftHip, leftAnkle);
     }
 
-    const isDownPosition = elbowAngle <= EXERCISE_THRESHOLDS.pushups.downElbowAngle + 15;
-    const isUpPosition = elbowAngle >= EXERCISE_THRESHOLDS.pushups.upElbowAngle - 15;
+    const isDownPosition = elbowAngle <= EXERCISE_THRESHOLDS.pushups.downElbowAngle + 20;
+    const isUpPosition = elbowAngle >= EXERCISE_THRESHOLDS.pushups.upElbowAngle - 20;
 
     // Check form issues
     if (bodyAlignment < 160 && leftHip && leftShoulder && leftHip.y < leftShoulder.y) {
@@ -549,7 +549,7 @@ export class ExerciseTracker {
   private repStartTime: number = 0;
   private repetitions: RepetitionData[] = [];
   private lastPhaseChangeTime: number = 0;
-  private minPhaseDuration: number = 200; // Minimum ms between phase changes
+  private minPhaseDuration: number = 150; // Minimum ms between phase changes (reduced for better responsiveness)
 
   constructor(testType: FitnessTestType) {
     this.testType = testType;
@@ -629,16 +629,23 @@ export class ExerciseTracker {
 
     const canChangePhase = timeSinceLastChange >= this.minPhaseDuration;
 
+    // Debug logging (remove in production)
+    if (__DEV__) {
+      console.log(`Squat: Phase=${this.state.phase}, Angle=${analysis.kneeAngle.toFixed(1)}, Standing=${analysis.isStandingPosition}, Squat=${analysis.isSquatPosition}, CanChange=${canChangePhase}`);
+    }
+
     if (this.state.phase === 'idle' || this.state.phase === 'starting') {
       if (analysis.isStandingPosition && canChangePhase) {
         this.state.phase = 'up';
         this.repStartTime = now;
         this.lastPhaseChangeTime = now;
+        if (__DEV__) console.log('✓ Squat: Started UP phase');
       }
     } else if (this.state.phase === 'up') {
       if (analysis.isSquatPosition && canChangePhase) {
         this.state.phase = 'down';
         this.lastPhaseChangeTime = now;
+        if (__DEV__) console.log('✓ Squat: Moved to DOWN phase');
       }
     } else if (this.state.phase === 'down') {
       if (analysis.isStandingPosition && canChangePhase) {
@@ -646,6 +653,7 @@ export class ExerciseTracker {
         this.state.phase = 'up';
         this.lastPhaseChangeTime = now;
         this.repStartTime = now;
+        if (__DEV__) console.log('✓ Squat: REP COMPLETE! Count:', this.state.repCount);
       }
     }
 
@@ -659,16 +667,23 @@ export class ExerciseTracker {
 
     const canChangePhase = timeSinceLastChange >= this.minPhaseDuration;
 
+    // Debug logging (remove in production)
+    if (__DEV__) {
+      console.log(`Pushup: Phase=${this.state.phase}, Angle=${analysis.elbowAngle.toFixed(1)}, Up=${analysis.isUpPosition}, Down=${analysis.isDownPosition}, CanChange=${canChangePhase}`);
+    }
+
     if (this.state.phase === 'idle' || this.state.phase === 'starting') {
       if (analysis.isUpPosition && canChangePhase) {
         this.state.phase = 'up';
         this.repStartTime = now;
         this.lastPhaseChangeTime = now;
+        if (__DEV__) console.log('✓ Pushup: Started UP phase');
       }
     } else if (this.state.phase === 'up') {
       if (analysis.isDownPosition && canChangePhase) {
         this.state.phase = 'down';
         this.lastPhaseChangeTime = now;
+        if (__DEV__) console.log('✓ Pushup: Moved to DOWN phase');
       }
     } else if (this.state.phase === 'down') {
       if (analysis.isUpPosition && canChangePhase) {
@@ -676,6 +691,7 @@ export class ExerciseTracker {
         this.state.phase = 'up';
         this.lastPhaseChangeTime = now;
         this.repStartTime = now;
+        if (__DEV__) console.log('✓ Pushup: REP COMPLETE! Count:', this.state.repCount);
       }
     }
 

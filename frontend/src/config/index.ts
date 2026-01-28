@@ -8,12 +8,14 @@
 // - Windows: Open CMD and run 'ipconfig' - look for IPv4 Address
 // - Mac/Linux: Run 'ifconfig' or 'ip addr' in terminal
 
-const HOST_IP = '192.168.1.6'; // Your computer's local IP address
-const USE_EMULATOR = false; // Set to false when testing on physical device
+const HOST_IP = '172.16.47.167'; // Your computer's local IP address (current: 172.16.47.167)
+const HOST_IP_ALT = '192.168.1.6'; // Alternative IP address (if network changes)
+const USE_EMULATOR = false; // Set to true for Android emulator, false for physical device
 
 export const API_CONFIG = {
   // Automatically uses 10.0.2.2 for emulator or your IP for physical device
   BASE_URL: `http://${USE_EMULATOR ? '10.0.2.2' : HOST_IP}:5000/api`,
+  BASE_URL_ALT: `http://${HOST_IP_ALT}:5000/api`, // Alternative URL if network changes
   
   // Timeout for API requests (in milliseconds)
   TIMEOUT: 30000,

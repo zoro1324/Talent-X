@@ -63,34 +63,54 @@ export function TestCameraScreen({ navigation, route }: Props) {
    */
   const generateSimulatedPose = useCallback((): Pose => {
     // Generate simulated keypoints for demo/testing purposes
-    // This simulates a person doing exercise movements
+    // This simulates a person doing exercise movements with realistic phases
     const baseY = 300;
     const time = Date.now() / 1000;
-    const movement = Math.sin(time * 2) * 50;
+    
+    // Create distinct up/down phases for exercise simulation
+    // Using a slower, more distinct sine wave with clear peaks and troughs
+    const cycle = Math.sin(time * 1.5); // Slower cycle (~2 seconds per rep)
+    const movement = cycle * 60; // Larger movement range
+    
+    // For exercises like squats/pushups, create clear standing/squat or up/down positions
+    const isUpPhase = cycle > 0.3; // Clear threshold for "up" position
+    const isDownPhase = cycle < -0.3; // Clear threshold for "down" position
+    
+    // Adjust knee/elbow positions based on exercise type
+    let kneeMovement = movement;
+    let elbowMovement = movement;
+    
+    if (testType === 'squats' || testType === 'lunges' || testType === 'wall_sit') {
+      // Squat-like movement: knees bend more
+      kneeMovement = isDownPhase ? movement * 1.5 : movement * 0.3;
+    } else if (testType === 'pushups' || testType === 'hand_release_pushups') {
+      // Push-up movement: elbows bend
+      elbowMovement = isDownPhase ? movement * 1.5 : movement * 0.3;
+    }
 
     return {
       score: 0.9,
       keypoints: [
         { name: 'nose', x: 200, y: baseY - 200 + movement * 0.2, score: 0.95 },
-        { name: 'left_shoulder', x: 160, y: baseY - 150 + movement * 0.3, score: 0.9 },
-        { name: 'right_shoulder', x: 240, y: baseY - 150 + movement * 0.3, score: 0.9 },
-        { name: 'left_elbow', x: 120, y: baseY - 80 + movement * 0.4, score: 0.85 },
-        { name: 'right_elbow', x: 280, y: baseY - 80 + movement * 0.4, score: 0.85 },
-        { name: 'left_wrist', x: 100, y: baseY - 20 + movement * 0.5, score: 0.8 },
-        { name: 'right_wrist', x: 300, y: baseY - 20 + movement * 0.5, score: 0.8 },
-        { name: 'left_hip', x: 170, y: baseY + movement * 0.6, score: 0.9 },
-        { name: 'right_hip', x: 230, y: baseY + movement * 0.6, score: 0.9 },
-        { name: 'left_knee', x: 160, y: baseY + 100 + movement, score: 0.85 },
-        { name: 'right_knee', x: 240, y: baseY + 100 + movement, score: 0.85 },
-        { name: 'left_ankle', x: 150, y: baseY + 200 + movement * 0.8, score: 0.8 },
-        { name: 'right_ankle', x: 250, y: baseY + 200 + movement * 0.8, score: 0.8 },
+        { name: 'left_shoulder', x: 160, y: baseY - 150 + movement * 0.25, score: 0.9 },
+        { name: 'right_shoulder', x: 240, y: baseY - 150 + movement * 0.25, score: 0.9 },
+        { name: 'left_elbow', x: 120, y: baseY - 80 + elbowMovement * 0.6, score: 0.85 },
+        { name: 'right_elbow', x: 280, y: baseY - 80 + elbowMovement * 0.6, score: 0.85 },
+        { name: 'left_wrist', x: 100, y: baseY - 20 + elbowMovement * 0.8, score: 0.8 },
+        { name: 'right_wrist', x: 300, y: baseY - 20 + elbowMovement * 0.8, score: 0.8 },
+        { name: 'left_hip', x: 170, y: baseY + movement * 0.4, score: 0.9 },
+        { name: 'right_hip', x: 230, y: baseY + movement * 0.4, score: 0.9 },
+        { name: 'left_knee', x: 160, y: baseY + 100 + kneeMovement, score: 0.85 },
+        { name: 'right_knee', x: 240, y: baseY + 100 + kneeMovement, score: 0.85 },
+        { name: 'left_ankle', x: 150, y: baseY + 200 + kneeMovement * 0.6, score: 0.8 },
+        { name: 'right_ankle', x: 250, y: baseY + 200 + kneeMovement * 0.6, score: 0.8 },
         { name: 'left_eye', x: 190, y: baseY - 210 + movement * 0.2, score: 0.9 },
         { name: 'right_eye', x: 210, y: baseY - 210 + movement * 0.2, score: 0.9 },
         { name: 'left_ear', x: 175, y: baseY - 200 + movement * 0.2, score: 0.85 },
         { name: 'right_ear', x: 225, y: baseY - 200 + movement * 0.2, score: 0.85 },
       ],
     };
-  }, []);
+  }, [testType]);
 
   // Process poses during testing phase
   useEffect(() => {

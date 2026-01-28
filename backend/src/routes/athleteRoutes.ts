@@ -102,7 +102,7 @@ router.get(
   '/:id',
   [
     param('id')
-      .isMongoId()
+      .isInt({ min: 1 })
       .withMessage('Invalid athlete ID'),
   ],
   getAthlete
@@ -117,7 +117,7 @@ router.put(
   '/:id',
   [
     param('id')
-      .isMongoId()
+      .isInt({ min: 1 })
       .withMessage('Invalid athlete ID'),
     body('firstName')
       .optional()
@@ -168,7 +168,7 @@ router.delete(
   '/:id',
   [
     param('id')
-      .isMongoId()
+      .isInt({ min: 1 })
       .withMessage('Invalid athlete ID'),
   ],
   deleteAthlete
@@ -183,7 +183,7 @@ router.patch(
   '/:id/restore',
   [
     param('id')
-      .isMongoId()
+      .isInt({ min: 1 })
       .withMessage('Invalid athlete ID'),
   ],
   restoreAthlete
@@ -198,7 +198,7 @@ router.get(
   '/:id/stats',
   [
     param('id')
-      .isMongoId()
+      .isInt({ min: 1 })
       .withMessage('Invalid athlete ID'),
   ],
   getAthleteStats

@@ -27,7 +27,7 @@ router.post(
   testSubmitLimiter,
   [
     body('athleteId')
-      .isMongoId()
+      .isInt({ min: 1 })
       .withMessage('Invalid athlete ID'),
     body('testType')
       .isIn([
@@ -133,7 +133,7 @@ router.get(
       .withMessage('Limit must be between 1 and 100'),
     query('athleteId')
       .optional()
-      .isMongoId()
+      .isInt({ min: 1 })
       .withMessage('Invalid athlete ID'),
     query('testType')
       .optional()
@@ -230,7 +230,7 @@ router.get(
   apiLimiter,
   [
     param('athleteId')
-      .isMongoId()
+      .isInt({ min: 1 })
       .withMessage('Invalid athlete ID'),
     query('testType')
       .optional()
@@ -271,7 +271,7 @@ router.get(
   apiLimiter,
   [
     param('id')
-      .isMongoId()
+      .isInt({ min: 1 })
       .withMessage('Invalid test result ID'),
   ],
   getTestResult
@@ -287,7 +287,7 @@ router.delete(
   apiLimiter,
   [
     param('id')
-      .isMongoId()
+      .isInt({ min: 1 })
       .withMessage('Invalid test result ID'),
   ],
   deleteTestResult
