@@ -122,6 +122,7 @@ export type RootStackParamList = {
   ProfileCreate: undefined;
   ProfileEdit: { athleteId: string };
   ProfileView: { athleteId: string };
+  TestAthleteSelect: undefined;
   TestSelect: { athleteId: string };
   TestCamera: { athleteId: string; testType: FitnessTestType };
   TestResult: { resultId: string };
