@@ -15,6 +15,7 @@ import {
   HomeScreen,
   ProfileCreateScreen,
   ProfileViewScreen,
+  TestAthleteSelectScreen,
   TestSelectScreen,
   TestCameraScreen,
   TestResultScreen,
@@ -68,6 +69,11 @@ export default function App() {
           name="ProfileView"
           component={ProfileViewScreen}
           options={{ title: 'Athlete Profile' }}
+        />
+        <Stack.Screen
+          name="TestAthleteSelect"
+          component={TestAthleteSelectScreen}
+          options={{ title: 'Select Athlete' }}
         />
         <Stack.Screen
           name="TestSelect"

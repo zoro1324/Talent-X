@@ -152,6 +152,10 @@ export function HomeScreen({ navigation }: Props) {
     navigation.navigate('ProfileCreate');
   };
 
+  const handleNewTest = () => {
+    navigation.navigate('TestAthleteSelect');
+  };
+
   const handleSportPress = (sport: SportCategory) => {
     // Navigate to SportExercises screen instead of filtering
     navigation.navigate('SportExercises', {
@@ -411,7 +415,7 @@ export function HomeScreen({ navigation }: Props) {
                 <Text style={styles.quickActionText}>Add Athlete</Text>
               </LinearGradient>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.quickActionCard}>
+            <TouchableOpacity style={styles.quickActionCard} onPress={handleNewTest}>
               <LinearGradient
                 colors={['#3B82F6', '#1D4ED8']}
                 style={styles.quickActionGradient}

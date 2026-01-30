@@ -7,6 +7,7 @@ export { SignupScreen } from './SignupScreen';
 export { HomeScreen } from './HomeScreen';
 export { ProfileCreateScreen } from './ProfileCreateScreen';
 export { ProfileViewScreen } from './ProfileViewScreen';
+export { TestAthleteSelectScreen } from './TestAthleteSelectScreen';
 export { TestSelectScreen } from './TestSelectScreen';
 export { TestCameraScreen } from './TestCameraScreen';
 export { TestResultScreen } from './TestResultScreen';
